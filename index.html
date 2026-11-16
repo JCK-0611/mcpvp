@@ -349,6 +349,7 @@ let rails = [];
 let windCharges = [];
 let particles = [];
 let swingAnimations = [];
+let matchEnded = false;
 
 function createPlayer(id, name, x, color, isBot = false) {
   return {
@@ -387,6 +388,7 @@ function resetEntities() {
 }
 
 function startMatch(mode, oppName, hostFlag = true) {
+  matchEnded = false;
   gameMode = mode;
   opponentName = oppName;
   isHost = hostFlag;
@@ -723,6 +725,7 @@ function updateHUD() {
 }
 
 function handleKO(victimIdx) {
+  if (matchEnded) return;
   const victim = players[victimIdx];
   const killer = players[1 - victimIdx];
   victim.stocks--;
@@ -734,6 +737,7 @@ function handleKO(victimIdx) {
   updateHUD();
 
   if (victim.stocks <= 0) {
+    matchEnded = true;
     const p1Kills = 3 - players[1].stocks;
     const p1Deaths = 3 - players[0].stocks;
     saveRanking(players[0].name, p1Kills, p1Deaths);
@@ -816,7 +820,7 @@ function updateBot(bot, target) {
 }
 
 function update() {
-  if (!gameMode) return;
+  if (!gameMode || matchEnded) return;
 
   const p1 = players[0];
   if (keys['KeyA'] || keys['ArrowLeft']) {
