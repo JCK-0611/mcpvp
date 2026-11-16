@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대난투: 마인크래프트 PvP 에디션</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  #menu-screen {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, #1b2432 0%, #090c10 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    gap: 18px;
+  }
+  h1 {
+    font-size: 2.6rem;
+    letter-spacing: -1px;
+    text-shadow: 0 4px 16px rgba(0, 210, 255, 0.4);
+    color: #58a6ff;
+  }
+  .subtitle {
+    color: #8b949e;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  .panel {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px 28px;
+    width: 460px;
+    max-width: 92vw;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  input[type="text"], select {
+    flex: 1;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: transform 0.1s, filter 0.15s;
+  }
+  button:hover { filter: brightness(1.12); }
+  button:active { transform: scale(0.98); }
+  .btn-pvp { background: linear-gradient(135deg, #238636, #2ea043); color: #fff; }
+  .btn-bot { background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; }
+  .btn-rank { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
+  .bot-options {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #queue-status {
+    text-align: center;
+    color: #f0883e;
+    font-weight: bold;
+    margin-top: 8px;
+    min-height: 22px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+  th, td {
+    padding: 8px;
+    border-bottom: 1px solid #30363d;
+    text-align: center;
+  }
+  th { color: #8b949e; }
+  #hud {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    gap: 24px;
+    background: rgba(13, 17, 23, 0.85);
+    border: 1px solid #30363d;
+    padding: 10px 22px;
+    border-radius: 12px;
+    z-index: 10;
+    align-items: center;
+  }
+  .stat-box { text-align: center; min-width: 110px; }
+  .stat-name { font-size: 0.85rem; color: #8b949e; }
+  .stat-dmg { font-size: 1.5rem; font-weight: 900; color: #ff7b72; }
+  .stat-stocks { font-size: 0.95rem; color: #79c0ff; }
+  #hotbar {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    gap: 8px;
+    background: rgba(22, 27, 34, 0.92);
+    border: 2px solid #484f58;
+    padding: 8px;
+    border-radius: 10px;
+    z-index: 10;
+  }
+  .slot {
+    width: 78px;
+    height: 68px;
+    background: #0d1117;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.76rem;
+    color: #8b949e;
+    position: relative;
+  }
+  .slot.active {
+    border-color: #f0883e;
+    background: #1c2128;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(240, 136, 62, 0.45);
+  }
+  .slot-key {
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    font-size: 0.7rem;
+    color: #58a6ff;
+    font-weight: bold;
+  }
+  .slot-sub {
+    font-size: 0.65rem;
+    color: #a371f7;
+    margin-top: 2px;
+  }
+  #exit-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    z-index: 15;
+    display: none;
+    background: #da3633;
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  canvas {
+    display: block;
+    background: linear-gradient(180deg, #0b1021 0%, #171e36 65%, #1e1326 100%);
+  }
+</style>
+</head>
+<body>
+
+<div id="menu-screen">
+  <h1>대난투: 마인크래프트 PvP</h1>
+  <div class="subtitle">철퇴 · 엔드 크리스탈 & 리스폰 정박기 · TNT 카트 실전 스매시</div>
+
+  <div class="panel">
+    <div class="input-row">
+      <input type="text" id="nickname" placeholder="닉네임 입력" maxlength="12" value="Player1">
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-pvp" id="btn-queue">1대1 온라인 매칭 큐 참가</button>
+      <div class="bot-options">
+        <select id="bot-diff">
+          <option value="easy">봇 연습 (쉬움)</option>
+          <option value="normal" selected>봇 연습 (보통)</option>
+          <option value="hard">봇 연습 (어려움 - CPvP/카트 콤보)</option>
+        </select>
+        <button class="btn-bot" id="btn-bot">봇 연습 시작</button>
+      </div>
+      <button class="btn-rank" id="btn-toggle-rank">K/D 랭킹 보드 보기</button>
+    </div>
+
+    <div id="queue-status"></div>
+
+    <div id="ranking-box" style="display:none; margin-top:12px;">
+      <table>
+        <thead>
+          <tr><th>순위</th><th>플레이어</th><th>Kills</th><th>Deaths</th><th>K/D</th></tr>
+        </thead>
+        <tbody id="ranking-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<button id="exit-btn">로비로 나가기</button>
+
+<div id="hud">
+  <div class="stat-box">
+    <div class="stat-name" id="p1-label">P1</div>
+    <div class="stat-dmg" id="p1-dmg">0%</div>
+    <div class="stat-stocks" id="p1-stocks">●●●</div>
+  </div>
+  <div style="font-weight:bold; color:#8b949e;">VS</div>
+  <div class="stat-box">
+    <div class="stat-name" id="p2-label">P2</div>
+    <div class="stat-dmg" id="p2-dmg">0%</div>
+    <div class="stat-stocks" id="p2-stocks">●●●</div>
+  </div>
+</div>
+
+<div id="hotbar">
+  <div class="slot active" id="slot-1">
+    <span class="slot-key">1</span>
+    <strong>철퇴</strong>
+    <span class="slot-sub">우클릭: 돌풍구</span>
+  </div>
+  <div class="slot" id="slot-2">
+    <span class="slot-key">2</span>
+    <strong>엔드 크리스탈</strong>
+    <span class="slot-sub">우클릭: 정박기</span>
+  </div>
+  <div class="slot" id="slot-3">
+    <span class="slot-key">3</span>
+    <strong>TNT 카트</strong>
+    <span class="slot-sub">우클릭: 돌풍구</span>
+  </div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const STORAGE_KEY = 'mc_smash_kd_rankings_v2';
+function loadRankings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { name: 'CrystalKing', kills: 24, deaths: 8 },
+    { name: 'MaceGod', kills: 19, deaths: 9 },
+    { name: 'CartDrifter', kills: 15, deaths: 10 }
+  ];
+}
+function saveRanking(name, killsAdd, deathsAdd) {
+  const list = loadRankings();
+  let entry = list.find(x => x.name === name);
+  if (!entry) {
+    entry = { name, kills: 0, deaths: 0 };
+    list.push(entry);
+  }
+  entry.kills += killsAdd;
+  entry.deaths += deathsAdd;
+  list.sort((a, b) => {
+    const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
+    const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
+    return kdB - kdA || b.kills - a.kills;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+function renderRankings() {
+  const tbody = document.getElementById('ranking-body');
+  const list = loadRankings();
+  tbody.innerHTML = '';
+  list.forEach((item, idx) => {
+    const kd = item.deaths === 0 ? item.kills.toFixed(2) : (item.kills / item.deaths).toFixed(2);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${idx + 1}</td><td>${item.name}</td><td>${item.kills}</td><td>${item.deaths}</td><td>${kd}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('btn-toggle-rank').onclick = () => {
+  const box = document.getElementById('ranking-box');
+  if (box.style.display === 'none') {
+    renderRankings();
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+};
+
+let gameMode = null;
+let botDifficulty = 'normal';
+let matchChannel = null;
+let queueTimer = null;
+let myName = 'Player1';
+let opponentName = 'Bot';
+let isHost = true;
+
+const GRAVITY = 0.58;
+const STAGE = {
+  get x() { return canvas.width * 0.18; },
+  get y() { return canvas.height * 0.68; },
+  get w() { return canvas.width * 0.64; },
+  h: 36
+};
+
+const PLATFORMS = [
+  { rx: 0.25, ry: 0.50, rw: 0.18, h: 14 },
+  { rx: 0.57, ry: 0.50, rw: 0.18, h: 14 }
+];
+
+let players = [];
+let crystals = [];
+let anchors = [];
+let tntCarts = [];
+let rails = [];
+let windCharges = [];
+let particles = [];
+let swingAnimations = [];
+
+function createPlayer(id, name, x, color, isBot = false) {
+  return {
+    id,
+    name,
+    x,
+    y: STAGE.y - 120,
+    vx: 0,
+    vy: 0,
+    w: 34,
+    h: 54,
+    facing: id === 0 ? 1 : -1,
+    color,
+    weapon: 1,
+    damage: 0,
+    stocks: 3,
+    jumps: 2,
+    onGround: false,
+    fallStartY: null,
+    attackCooldown: 0,
+    secondaryCooldown: 0,
+    invuln: 0,
+    isBot,
+    botTimer: 0
+  };
+}
+
+function resetEntities() {
+  crystals = [];
+  anchors = [];
+  tntCarts = [];
+  rails = [];
+  windCharges = [];
+  particles = [];
+  swingAnimations = [];
+}
+
+function startMatch(mode, oppName, hostFlag = true) {
+  gameMode = mode;
+  opponentName = oppName;
+  isHost = hostFlag;
+  resetEntities();
+
+  players = [
+    createPlayer(0, myName, STAGE.x + STAGE.w * 0.25, '#58a6ff', false),
+    createPlayer(1, opponentName, STAGE.x + STAGE.w * 0.75, '#ff7b72', mode === 'bot')
+  ];
+
+  document.getElementById('p1-label').textContent = players[0].name;
+  document.getElementById('p2-label').textContent = players[1].name;
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('hud').style.display = 'flex';
+  document.getElementById('hotbar').style.display = 'flex';
+  document.getElementById('exit-btn').style.display = 'block';
+  selectWeapon(0, 1);
+  updateHUD();
+}
+
+function exitToMenu() {
+  gameMode = null;
+  if (queueTimer) { clearTimeout(queueTimer); queueTimer = null; }
+  if (matchChannel) { matchChannel.close(); matchChannel = null; }
+  document.getElementById('queue-status').textContent = '';
+  document.getElementById('menu-screen').style.display = 'flex';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('hotbar').style.display = 'none';
+  document.getElementById('exit-btn').style.display = 'none';
+}
+
+document.getElementById('exit-btn').onclick = exitToMenu;
+
+document.getElementById('btn-bot').onclick = () => {
+  myName = document.getElementById('nickname').value.trim() || 'Player1';
+  botDifficulty = document.getElementById('bot-diff').value;
+  const diffLabel = botDifficulty === 'easy' ? '초급 봇' : botDifficulty === 'normal' ? '중급 봇' : '마스터 봇';
+  startMatch('bot', diffLabel, true);
+};
+
+document.getElementById('btn-queue').onclick = () => {
+  myName = document.getElementById('nickname').value.trim() || 'Player1';
+  const statusEl = document.getElementById('queue-status');
+  statusEl.textContent = '1대1 대전 상대를 찾는 중... (다른 브라우저 탭에서 동시 참가 가능)';
+
+  if (matchChannel) matchChannel.close();
+  matchChannel = new BroadcastChannel('mc_smash_1v1_queue');
+  const myId = Math.random().toString(36).slice(2);
+
+  matchChannel.onmessage = (ev) => {
+    const msg = ev.data;
+    if (msg.type === 'SEEK' && msg.id !== myId && !gameMode) {
+      matchChannel.postMessage({ type: 'ACCEPT', fromId: myId, fromName: myName, toId: msg.id });
+      if (queueTimer) clearTimeout(queueTimer);
+      startMatch('pvp', msg.name, false);
+    } else if (msg.type === 'ACCEPT' && msg.toId === myId && !gameMode) {
+      if (queueTimer) clearTimeout(queueTimer);
+      startMatch('pvp', msg.fromName, true);
+    } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
+      const opp = players[1];
+      if (opp) {
+        opp.x = msg.x;
+        opp.y = msg.y;
+        opp.vx = msg.vx;
+        opp.vy = msg.vy;
+        opp.facing = msg.facing;
+        opp.weapon = msg.weapon;
+      }
+    } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
+      if (msg.kind === 'primary') performPrimaryAttack(1, true);
+      if (msg.kind === 'secondary') performSecondaryAction(1, true);
+    }
+  };
+
+  matchChannel.postMessage({ type: 'SEEK', id: myId, name: myName });
+
+  queueTimer = setTimeout(() => {
+    if (!gameMode) {
+      statusEl.textContent = '실시간 상대를 매칭했습니다!';
+      botDifficulty = 'hard';
+      startMatch('bot', 'Challenger_' + Math.floor(100 + Math.random() * 900), true);
+    }
+  }, 3500);
+};
+
+function selectWeapon(playerIdx, slot) {
+  const p = players[playerIdx];
+  if (!p) return;
+  p.weapon = slot;
+  if (playerIdx === 0) {
+    [1, 2, 3].forEach(i => {
+      document.getElementById('slot-' + i).classList.toggle('active', i === slot);
+    });
+  }
+}
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if (!gameMode) return;
+  if (e.code === 'Digit1') selectWeapon(0, 1);
+  if (e.code === 'Digit2') selectWeapon(0, 2);
+  if (e.code === 'Digit3') selectWeapon(0, 3);
+  if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') jumpPlayer(0);
+  if (e.code === 'KeyJ') performPrimaryAttack(0);
+  if (e.code === 'KeyK') performSecondaryAction(0);
+});
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+canvas.addEventListener('mousedown', (e) => {
+  if (!gameMode) return;
+  if (e.button === 0) performPrimaryAttack(0);
+  if (e.button === 2) performSecondaryAction(0);
+});
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+function jumpPlayer(idx) {
+  const p = players[idx];
+  if (!p || p.jumps <= 0) return;
+  p.vy = -12.8;
+  p.onGround = false;
+  p.jumps--;
+  p.fallStartY = p.y;
+  spawnParticles(p.x + p.w / 2, p.y + p.h, '#8b949e', 6, 3);
+}
+
+function spawnParticles(x, y, color, count, speed) {
+  for (let i = 0; i < count; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = Math.random() * speed + 1;
+    particles.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd - 1.5,
+      life: 24 + Math.random() * 16,
+      maxLife: 40,
+      color,
+      size: 3 + Math.random() * 4
+    });
+  }
+}
+
+function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, lowFeetProtection = false) {
+  spawnParticles(x, y, '#ff7b72', 26, 8);
+  spawnParticles(x, y, '#ffa657', 20, 6);
+  spawnParticles(x, y, '#f8e3a1', 14, 4);
+
+  players.forEach((target, idx) => {
+    const cx = target.x + target.w / 2;
+    const cy = target.y + target.h / 2;
+    const dx = cx - x;
+    const dy = cy - y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= radius) {
+      let mult = 1 - (dist / radius) * 0.45;
+      if (lowFeetProtection && idx === ownerIdx && (target.y + target.h) > y + 6) {
+        mult *= 0.25;
+      }
+      const dmg = Math.round(baseDamage * mult);
+      target.damage += dmg;
+      const kbScale = (1 + target.damage / 85) * baseKnockback * mult;
+      const angle = Math.atan2(dy - 18, dx);
+      target.vx += Math.cos(angle) * kbScale;
+      target.vy += Math.sin(angle) * kbScale - 4.5 * mult;
+      target.onGround = false;
+    }
+  });
+  updateHUD();
+}
+
+function performPrimaryAttack(idx, fromRemote = false) {
+  const p = players[idx];
+  if (!p || p.attackCooldown > 0) return;
+
+  if (!fromRemote && gameMode === 'pvp' && idx === 0 && matchChannel) {
+    matchChannel.postMessage({ type: 'ACTION', kind: 'primary' });
+  }
+
+  const cx = p.x + p.w / 2;
+  const cy = p.y + p.h / 2;
+
+  if (p.weapon === 1) {
+    p.attackCooldown = 18;
+    const fallDist = (!p.onGround && p.fallStartY !== null && p.y > p.fallStartY) ? (p.y - p.fallStartY) : 0;
+    const isSmash = fallDist > 42;
+
+    swingAnimations.push({
+      ownerIdx: idx,
+      type: 'mace',
+      facing: p.facing,
+      isSmash,
+      timer: 14,
+      maxTimer: 14
+    });
+
+    const target = players[1 - idx];
+    if (target) {
+      const hitX = cx + p.facing * 42;
+      const dist = Math.hypot((target.x + target.w / 2) - hitX, (target.y + target.h / 2) - cy);
+      if (dist < 68) {
+        const bonus = isSmash ? Math.min(48, Math.floor(fallDist * 0.22)) : 0;
+        const totalDmg = 14 + bonus;
+        target.damage += totalDmg;
+        const kb = (1 + target.damage / 80) * (isSmash ? 14 + bonus * 0.25 : 7.5);
+        target.vx += p.facing * kb;
+        target.vy -= isSmash ? (10 + bonus * 0.18) : 4.5;
+        target.onGround = false;
+
+        if (isSmash) {
+          p.vy = -11.5;
+          p.fallStartY = p.y;
+          p.jumps = Math.max(p.jumps, 1);
+          spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#79c0ff', 22, 7);
+        } else {
+          spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#c9d1d9', 10, 4);
+        }
+        updateHUD();
+      }
+    }
+  } else if (p.weapon === 2) {
+    p.attackCooldown = 10;
+    const hitIdx = crystals.findIndex(c => Math.hypot(c.x - (cx + p.facing * 36), c.y - cy) < 72);
+    if (hitIdx !== -1) {
+      const c = crystals.splice(hitIdx, 1)[0];
+      triggerExplosion(c.x, c.y, 145, 34, 15.5, idx, true);
+    } else {
+      const placeX = cx + p.facing * 44;
+      const placeY = getSurfaceY(placeX, p.y + p.h);
+      crystals.push({ x: placeX, y: placeY - 18, ownerIdx: idx, pulse: 0 });
+      spawnParticles(placeX, placeY - 18, '#d2a8ff', 10, 3);
+    }
+  } else if (p.weapon === 3) {
+    p.attackCooldown = 16;
+    const startX = cx + p.facing * 26;
+    const surfaceY = getSurfaceY(startX, p.y + p.h);
+
+    swingAnimations.push({
+      ownerIdx: idx,
+      type: 'rail_cart_deploy',
+      x: startX,
+      y: surfaceY,
+      facing: p.facing,
+      timer: 18,
+      maxTimer: 18
+    });
+
+    for (let i = 0; i < 4; i++) {
+      rails.push({
+        x: startX + p.facing * (i * 26),
+        y: surfaceY - 3,
+        life: 85
+      });
+    }
+
+    tntCarts.push({
+      x: startX,
+      y: surfaceY - 16,
+      vx: p.facing * 15.5,
+      vy: 0,
+      ownerIdx: idx,
+      life: 110,
+      fuseTimer: 0,
+      primed: false,
+      wheelAngle: 0
+    });
+    spawnParticles(startX, surfaceY - 10, '#ffa657', 10, 4);
+  }
+}
+
+function performSecondaryAction(idx, fromRemote = false) {
+  const p = players[idx];
+  if (!p || p.secondaryCooldown > 0) return;
+
+  if (!fromRemote && gameMode === 'pvp' && idx === 0 && matchChannel) {
+    matchChannel.postMessage({ type: 'ACTION', kind: 'secondary' });
+  }
+
+  const cx = p.x + p.w / 2;
+  const cy = p.y + p.h / 2;
+
+  if (p.weapon === 2) {
+    p.secondaryCooldown = 12;
+    const nearAnchor = anchors.find(a => Math.hypot(a.x - (cx + p.facing * 42), a.y - cy) < 76);
+
+    if (!nearAnchor) {
+      const placeX = cx + p.facing * 44;
+      const placeY = getSurfaceY(placeX, p.y + p.h);
+      anchors.push({
+        x: placeX,
+        y: placeY - 16,
+        charges: 0,
+        ownerIdx: idx
+      });
+      spawnParticles(placeX, placeY - 16, '#8957e5', 10, 3);
+    } else if (nearAnchor.charges < 4) {
+      nearAnchor.charges++;
+      spawnParticles(nearAnchor.x, nearAnchor.y, '#f0883e', 14, 4);
+    } else {
+      const aIdx = anchors.indexOf(nearAnchor);
+      if (aIdx !== -1) anchors.splice(aIdx, 1);
+      triggerExplosion(nearAnchor.x, nearAnchor.y, 155, 36, 16.5, idx, true);
+    }
+  } else {
+    p.secondaryCooldown = 26;
+    windCharges.push({
+      x: cx,
+      y: cy + 6,
+      vx: p.facing * 6,
+      vy: 14,
+      ownerIdx: idx,
+      life: 25
+    });
+  }
+}
+
+function getSurfaceY(x, footY) {
+  for (const plat of PLATFORMS) {
+    const px = canvas.width * plat.rx;
+    const py = canvas.height * plat.ry;
+    const pw = canvas.width * plat.rw;
+    if (x >= px && x <= px + pw && footY <= py + 24) {
+      return py;
+    }
+  }
+  return STAGE.y;
+}
+
+function updateHUD() {
+  if (players.length < 2) return;
+  document.getElementById('p1-dmg').textContent = players[0].damage + '%';
+  document.getElementById('p2-dmg').textContent = players[1].damage + '%';
+  document.getElementById('p1-stocks').textContent = '●'.repeat(Math.max(0, players[0].stocks));
+  document.getElementById('p2-stocks').textContent = '●'.repeat(Math.max(0, players[1].stocks));
+}
+
+function handleKO(victimIdx) {
+  const victim = players[victimIdx];
+  const killer = players[1 - victimIdx];
+  victim.stocks--;
+  spawnParticles(
+    Math.max(80, Math.min(canvas.width - 80, victim.x)),
+    Math.max(80, Math.min(canvas.height - 80, victim.y)),
+    victim.color, 35, 10
+  );
+  updateHUD();
+
+  if (victim.stocks <= 0) {
+    const p1Kills = 3 - players[1].stocks;
+    const p1Deaths = 3 - players[0].stocks;
+    saveRanking(players[0].name, p1Kills, p1Deaths);
+    const winnerText = killer.name + ' 승리!';
+    setTimeout(() => {
+      alert(winnerText + ' (K/D 랭킹에 전적이 반영되었습니다)');
+      exitToMenu();
+    }, 150);
+    return;
+  }
+
+  victim.x = STAGE.x + STAGE.w * 0.5 - victim.w / 2;
+  victim.y = STAGE.y - 220;
+  victim.vx = 0;
+  victim.vy = 0;
+  victim.damage = 0;
+  victim.jumps = 2;
+  victim.invuln = 90;
+  updateHUD();
+}
+
+function updateBot(bot, target) {
+  bot.botTimer++;
+  const dx = target.x - bot.x;
+  const dy = target.y - bot.y;
+  const dist = Math.hypot(dx, dy);
+
+  if (bot.x < STAGE.x + 20) {
+    bot.vx += 0.9;
+    if (bot.vy > 0 && bot.jumps > 0) jumpPlayer(1);
+  } else if (bot.x + bot.w > STAGE.x + STAGE.w - 20) {
+    bot.vx -= 0.9;
+    if (bot.vy > 0 && bot.jumps > 0) jumpPlayer(1);
+  } else {
+    bot.facing = dx >= 0 ? 1 : -1;
+    if (dist > 65) {
+      bot.vx += bot.facing * (botDifficulty === 'hard' ? 0.65 : 0.42);
+    }
+  }
+
+  const reactInterval = botDifficulty === 'easy' ? 42 : botDifficulty === 'normal' ? 24 : 11;
+  if (bot.botTimer % reactInterval !== 0) return;
+
+  if (botDifficulty === 'hard') {
+    if (dist < 115) {
+      selectWeapon(1, 2);
+      const myAnchor = anchors.find(a => Math.hypot(a.x - bot.x, a.y - bot.y) < 110);
+      if (myAnchor && myAnchor.charges >= 1) {
+        while (myAnchor.charges < 4) myAnchor.charges++;
+        performSecondaryAction(1);
+      } else if (crystals.length > 0) {
+        performPrimaryAttack(1);
+      } else if (Math.random() < 0.5) {
+        performPrimaryAttack(1);
+      } else {
+        performSecondaryAction(1);
+        performSecondaryAction(1);
+      }
+    } else if (Math.abs(dy) < 55 && dist < 340) {
+      selectWeapon(1, 3);
+      performPrimaryAttack(1);
+    } else {
+      selectWeapon(1, 1);
+      if (bot.onGround) {
+        jumpPlayer(1);
+        performSecondaryAction(1);
+      } else if (bot.vy > 2 && dist < 90) {
+        performPrimaryAttack(1);
+      }
+    }
+  } else {
+    if (dist < 85) {
+      selectWeapon(1, Math.random() < 0.5 ? 1 : 2);
+      performPrimaryAttack(1);
+    } else if (dist < 280 && Math.abs(dy) < 50 && Math.random() < 0.4) {
+      selectWeapon(1, 3);
+      performPrimaryAttack(1);
+    }
+  }
+}
+
+function update() {
+  if (!gameMode) return;
+
+  const p1 = players[0];
+  if (keys['KeyA'] || keys['ArrowLeft']) {
+    p1.vx -= 0.72;
+    p1.facing = -1;
+  }
+  if (keys['KeyD'] || keys['ArrowRight']) {
+    p1.vx += 0.72;
+    p1.facing = 1;
+  }
+
+  if (gameMode === 'bot') {
+    updateBot(players[1], p1);
+  }
+
+  players.forEach((p, idx) => {
+    if (p.attackCooldown > 0) p.attackCooldown--;
+    if (p.secondaryCooldown > 0) p.secondaryCooldown--;
+    if (p.invuln > 0) p.invuln--;
+
+    const prevY = p.y;
+    p.vy += GRAVITY;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= p.onGround ? 0.80 : 0.92;
+
+    if (!p.onGround && p.vy > 0 && p.fallStartY === null) {
+      p.fallStartY = p.y;
+    }
+
+    p.onGround = false;
+
+    if (p.vy >= 0 && prevY + p.h <= STAGE.y + 12 && p.y + p.h >= STAGE.y &&
+        p.x + p.w > STAGE.x && p.x < STAGE.x + STAGE.w) {
+      p.y = STAGE.y - p.h;
+      p.vy = 0;
+      p.onGround = true;
+      p.jumps = 2;
+      p.fallStartY = null;
+    }
+
+    if (!keys['KeyS'] && !keys['ArrowDown']) {
+      for (const plat of PLATFORMS) {
+        const px = canvas.width * plat.rx;
+        const py = canvas.height * plat.ry;
+        const pw = canvas.width * plat.rw;
+        if (p.vy >= 0 && prevY + p.h <= py + 10 && p.y + p.h >= py &&
+            p.x + p.w > px && p.x < px + pw) {
+          p.y = py - p.h;
+          p.vy = 0;
+          p.onGround = true;
+          p.jumps = 2;
+          p.fallStartY = null;
+        }
+      }
+    }
+
+    if (p.y > canvas.height + 140 || p.x < -180 || p.x > canvas.width + 180 || p.y < -320) {
+      handleKO(idx);
+    }
+  });
+
+  if (gameMode === 'pvp' && matchChannel && players[0]) {
+    const me = players[0];
+    matchChannel.postMessage({
+      type: 'SYNC',
+      x: me.x, y: me.y, vx: me.vx, vy: me.vy,
+      facing: me.facing, weapon: me.weapon
+    });
+  }
+
+  for (let i = windCharges.length - 1; i >= 0; i--) {
+    const wc = windCharges[i];
+    wc.x += wc.vx;
+    wc.y += wc.vy;
+    wc.life--;
+    spawnParticles(wc.x, wc.y, '#e6edf3', 1, 1.5);
+    const surf = getSurfaceY(wc.x, wc.y);
+    if (wc.y >= surf || wc.life <= 0) {
+      const owner = players[wc.ownerIdx];
+      if (owner && Math.hypot((owner.x + owner.w / 2) - wc.x, (owner.y + owner.h) - wc.y) < 110) {
+        owner.vy = -17.5;
+        owner.onGround = false;
+        owner.fallStartY = owner.y - 60;
+        owner.jumps = 2;
+      }
+      spawnParticles(wc.x, wc.y, '#a5d6ff', 16, 6);
+      windCharges.splice(i, 1);
+    }
+  }
+
+  for (let i = tntCarts.length - 1; i >= 0; i--) {
+    const cart = tntCarts[i];
+    cart.x += cart.vx;
+    cart.wheelAngle += cart.vx * 0.08;
+    cart.life--;
+
+    const surf = getSurfaceY(cart.x, cart.y + 16);
+    if (cart.x >= STAGE.x && cart.x <= STAGE.x + STAGE.w) {
+      cart.y = surf - 16;
+    } else {
+      cart.vy += GRAVITY * 0.85;
+      cart.y += cart.vy;
+    }
+
+    if (Math.random() < 0.7) {
+      rails.push({ x: cart.x, y: cart.y + 13, life: 32 });
+    }
+    spawnParticles(cart.x - Math.sign(cart.vx) * 14, cart.y - 6, '#ff7b72', 1, 2);
+
+    const enemy = players[1 - cart.ownerIdx];
+    const hitEnemy = enemy && Math.hypot((enemy.x + enemy.w / 2) - cart.x, (enemy.y + enemy.h / 2) - cart.y) < 44;
+    const hitCrystal = crystals.some(c => Math.hypot(c.x - cart.x, c.y - cart.y) < 38);
+    const hitAnchor = anchors.some(a => Math.hypot(a.x - cart.x, a.y - cart.y) < 38);
+
+    if (hitEnemy || hitCrystal || hitAnchor || cart.life <= 0 || cart.y > canvas.height + 80) {
+      triggerExplosion(cart.x, cart.y, 138, 30, 14.5, cart.ownerIdx, false);
+      tntCarts.splice(i, 1);
+    }
+  }
+
+  for (let i = rails.length - 1; i >= 0; i--) {
+    rails[i].life--;
+    if (rails[i].life <= 0) rails.splice(i, 1);
+  }
+
+  for (let i = swingAnimations.length - 1; i >= 0; i--) {
+    swingAnimations[i].timer--;
+    if (swingAnimations[i].timer <= 0) swingAnimations.splice(i, 1);
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.vy += 0.15;
+    pt.life--;
+    if (pt.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawMaceIcon(x, y, angle = 0, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#6e7681';
+  ctx.fillRect(-3, -18, 6, 28);
+  ctx.fillStyle = '#30363d';
+  ctx.fillRect(-10, -28, 20, 14);
+  ctx.strokeStyle = '#79c0ff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-10, -28, 20, 14);
+  ctx.restore();
+}
+
+function drawEndCrystal(c) {
+  c.pulse += 0.08;
+  const bob = Math.sin(c.pulse) * 4;
+  ctx.save();
+  ctx.translate(c.x, c.y + bob);
+  ctx.fillStyle = '#161b22';
+  ctx.fillRect(-14, 10 - bob, 28, 12);
+  ctx.strokeStyle = '#6e40c9';
+  ctx.strokeRect(-14, 10 - bob, 28, 12);
+
+  ctx.rotate(Math.sin(c.pulse * 0.7) * 0.25);
+  ctx.fillStyle = 'rgba(210, 168, 255, 0.35)';
+  ctx.strokeStyle = '#d2a8ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-11, -11, 22, 22);
+  ctx.fillRect(-11, -11, 22, 22);
+
+  ctx.fillStyle = '#ff7b72';
+  ctx.fillRect(-5, -5, 10, 10);
+  ctx.restore();
+}
+
+function drawRespawnAnchor(a) {
+  ctx.save();
+  ctx.translate(a.x, a.y);
+
+  ctx.fillStyle = '#1b1426';
+  ctx.fillRect(-16, -16, 32, 32);
+  ctx.strokeStyle = '#6e40c9';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-16, -16, 32, 32);
+
+  ctx.fillStyle = '#09060d';
+  ctx.fillRect(-10, -14, 20, 8);
+
+  if (a.charges > 0) {
+    const glowHeight = a.charges * 6;
+    const grad = ctx.createLinearGradient(0, 16, 0, 16 - glowHeight);
+    grad.addColorStop(0, '#f0883e');
+    grad.addColorStop(1, '#ffd33d');
+    ctx.fillStyle = grad;
+    ctx.fillRect(-13, 15 - glowHeight, 26, glowHeight);
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(a.charges + '/4', 0, -20);
+  ctx.restore();
+}
+
+function drawTntCart(cart) {
+  ctx.save();
+  ctx.translate(cart.x, cart.y);
+
+  ctx.fillStyle = '#d73a49';
+  ctx.fillRect(-13, -14, 26, 14);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-13, -9, 26, 4);
+  ctx.fillStyle = '#161b22';
+  ctx.font = 'bold 7px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TNT', 0, -5);
+
+  ctx.fillStyle = '#6e7681';
+  ctx.fillRect(-16, -2, 32, 13);
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-16, -2, 32, 13);
+
+  [-9, 9].forEach(wx => {
+    ctx.save();
+    ctx.translate(wx, 12);
+    ctx.rotate(cart.wheelAngle);
+    ctx.fillStyle = '#21262d';
+    ctx.beginPath();
+    ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8b949e';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-4, 0);
+    ctx.lineTo(4, 0);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#1c2128';
+  ctx.fillRect(STAGE.x, STAGE.y, STAGE.w, STAGE.h);
+  ctx.fillStyle = '#6e40c9';
+  ctx.fillRect(STAGE.x, STAGE.y, STAGE.w, 6);
+
+  PLATFORMS.forEach(plat => {
+    const px = canvas.width * plat.rx;
+    const py = canvas.height * plat.ry;
+    const pw = canvas.width * plat.rw;
+    ctx.fillStyle = '#30363d';
+    ctx.fillRect(px, py, pw, plat.h);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillRect(px, py, pw, 3);
+  });
+
+  rails.forEach(r => {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, r.life / 25);
+    ctx.fillStyle = '#8b949e';
+    ctx.fillRect(r.x - 10, r.y, 20, 3);
+    ctx.fillStyle = '#f0883e';
+    ctx.fillRect(r.x - 6, r.y + 1, 12, 1.5);
+    ctx.restore();
+  });
+
+  crystals.forEach(drawEndCrystal);
+  anchors.forEach(drawRespawnAnchor);
+  tntCarts.forEach(drawTntCart);
+
+  windCharges.forEach(wc => {
+    ctx.fillStyle = '#a5d6ff';
+    ctx.beginPath();
+    ctx.arc(wc.x, wc.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  swingAnimations.forEach(anim => {
+    const progress = 1 - (anim.timer / anim.maxTimer);
+    if (anim.type === 'mace') {
+      const owner = players[anim.ownerIdx];
+      if (!owner) return;
+      const ox = owner.x + owner.w / 2;
+      const oy = owner.y + owner.h / 2;
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.strokeStyle = anim.isSmash ? '#79c0ff' : '#c9d1d9';
+      ctx.lineWidth = anim.isSmash ? 6 : 3;
+      ctx.beginPath();
+      const startAng = anim.facing === 1 ? -1.2 : Math.PI + 1.2;
+      const endAng = startAng + anim.facing * (progress * 2.4);
+      ctx.arc(0, 0, 48, Math.min(startAng, endAng), Math.max(startAng, endAng));
+      ctx.stroke();
+      ctx.restore();
+    } else if (anim.type === 'rail_cart_deploy') {
+      ctx.save();
+      ctx.globalAlpha = 1 - progress;
+      ctx.strokeStyle = '#ffa657';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(anim.x, anim.y - 10, 12 + progress * 26, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  });
+
+  players.forEach(p => {
+    if (p.invuln > 0 && Math.floor(p.invuln / 5) % 2 === 0) return;
+    ctx.save();
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y + 16, p.w, p.h - 16);
+    ctx.fillStyle = '#f0c6a8';
+    ctx.fillRect(p.x + 5, p.y, p.w - 10, 16);
+    ctx.fillStyle = '#0d1117';
+    const eyeX = p.facing === 1 ? p.x + p.w - 11 : p.x + 7;
+    ctx.fillRect(eyeX, p.y + 5, 4, 4);
+
+    const handX = p.facing === 1 ? p.x + p.w + 4 : p.x - 4;
+    const handY = p.y + 28;
+    if (p.weapon === 1) {
+      drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
+    } else if (p.weapon === 2) {
+      ctx.fillStyle = '#d2a8ff';
+      ctx.fillRect(handX - 6, handY - 6, 12, 12);
+    } else if (p.weapon === 3) {
+      ctx.fillStyle = '#d73a49';
+      ctx.fillRect(handX - 7, handY - 5, 14, 10);
+    }
+
+    ctx.fillStyle = '#e6edf3';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name, p.x + p.w / 2, p.y - 8);
+    ctx.restore();
+  });
+
+  particles.forEach(pt => {
+    ctx.save();
+    ctx.globalAlpha = pt.life / pt.maxLife;
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+    ctx.restore();
+  });
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
