@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>대난투: 마인크래프트 PvP 에디션</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
   body {
@@ -17,7 +18,7 @@
     justify-content: center;
     height: 100vh;
   }
-  #menu-screen {
+  .screen-overlay {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at center, #1b2432 0%, #090c10 100%);
@@ -40,81 +41,89 @@
     margin-bottom: 4px;
   }
   .panel {
-    background: rgba(22, 27, 34, 0.92);
+    background: rgba(22, 27, 34, 0.94);
     border: 1px solid #30363d;
     border-radius: 12px;
-    padding: 20px 26px;
-    width: 490px;
+    padding: 22px 28px;
+    width: 470px;
     max-width: 94vw;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.65);
+  }
+  .input-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
   }
   .input-row {
     display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 8px;
+    align-items: center;
   }
-  input[type="text"], select {
-    flex: 1;
+  input[type="text"], input[type="password"], select {
+    width: 100%;
     background: #0d1117;
     border: 1px solid #30363d;
     color: #fff;
-    padding: 10px 12px;
+    padding: 11px 13px;
     border-radius: 8px;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
+  }
+  input:focus {
+    outline: none;
+    border-color: #58a6ff;
   }
   .btn-group {
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 10px;
   }
   button {
     cursor: pointer;
     border: none;
     border-radius: 8px;
-    padding: 11px 14px;
-    font-size: 0.96rem;
+    padding: 12px 15px;
+    font-size: 0.98rem;
     font-weight: bold;
     transition: transform 0.1s, filter 0.15s;
   }
   button:hover { filter: brightness(1.12); }
   button:active { transform: scale(0.98); }
   .btn-pvp { background: linear-gradient(135deg, #238636, #2ea043); color: #fff; }
-  .btn-direct { background: linear-gradient(135deg, #8957e5, #a371f7); color: #fff; }
   .btn-bot { background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; }
   .btn-rank { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
-  .bot-options, .direct-options {
+  .btn-sub { background: #30363d; color: #e6edf3; padding: 8px 12px; font-size: 0.85rem; }
+  .bot-options {
     display: flex;
     gap: 8px;
     align-items: center;
   }
-  #queue-status {
+  .status-msg {
     text-align: center;
     color: #f0883e;
     font-weight: bold;
-    margin-top: 8px;
+    margin-top: 10px;
     min-height: 20px;
     font-size: 0.88rem;
   }
-  .p2p-box {
+  .user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 9px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+  }
+  #duel-code-box {
     display: none;
-    margin-top: 10px;
-    padding: 12px;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 8px;
-    font-size: 0.85rem;
-  }
-  textarea {
-    width: 100%;
-    height: 54px;
-    background: #161b22;
-    border: 1px solid #30363d;
-    color: #79c0ff;
-    border-radius: 6px;
-    padding: 6px;
-    font-size: 0.75rem;
-    resize: none;
-    margin: 6px 0;
+    padding: 12px;
+    margin-top: 4px;
   }
   table {
     width: 100%;
@@ -235,41 +244,57 @@
 </head>
 <body>
 
-<div id="menu-screen">
+<div id="login-screen" class="screen-overlay">
+  <h1>대난투: 마인크래프트 PvP</h1>
+  <div class="subtitle">닉네임 보호를 위해 로그인 또는 신규 등록 후 입장하세요</div>
+
+  <div class="panel">
+    <div class="input-col">
+      <input type="text" id="login-nickname" placeholder="닉네임 (최대 12자)" maxlength="12">
+      <input type="password" id="login-password" placeholder="비밀번호 (4자 이상)" maxlength="20">
+    </div>
+    <div class="btn-group">
+      <button class="btn-bot" id="btn-login">로그인 / 신규 닉네임 등록</button>
+    </div>
+    <div id="login-status" class="status-msg"></div>
+  </div>
+</div>
+
+<div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
   <div class="subtitle">철퇴 · 엔드 크리스탈 & 1충전 정박기 · TNT 카트 화살 기폭</div>
 
   <div class="panel">
-    <div class="input-row">
-      <input type="text" id="nickname" placeholder="닉네임 입력" maxlength="12" value="Player1">
+    <div class="user-header">
+      <span>접속 계정: <strong id="current-user-label" style="color:#58a6ff;"></strong></span>
+      <button class="btn-sub" id="btn-logout">로그아웃</button>
     </div>
 
     <div class="btn-group">
-      <button class="btn-pvp" id="btn-queue">1대1 자동 매칭 큐 (같은 기기/탭 즉시 연결)</button>
-      <div class="direct-options">
-        <button class="btn-direct" id="btn-create-room" style="flex:1;">1대1 방 만들기 (원격 초대)</button>
-        <button class="btn-direct" id="btn-join-room" style="flex:1;">초대 코드로 참가</button>
+      <button class="btn-pvp" id="btn-open-duel">1대1 대결</button>
+
+      <div id="duel-code-box">
+        <div style="font-size:0.84rem; color:#8b949e; margin-bottom:8px;">
+          상대와 같은 방 코드를 입력하면 자동으로 1대1 매칭됩니다 (예: 1515)
+        </div>
+        <div class="input-row">
+          <input type="text" id="room-code-input" placeholder="방 코드 입력 (예: 1515)" maxlength="10">
+          <button class="btn-pvp" id="btn-join-code" style="white-space:nowrap;">매칭 시작</button>
+        </div>
+        <div id="queue-status" class="status-msg"></div>
       </div>
+
       <div class="bot-options">
         <select id="bot-diff">
           <option value="easy">봇 연습 (쉬움)</option>
           <option value="normal" selected>봇 연습 (보통)</option>
           <option value="hard">봇 연습 (어려움 - 실전 콤보)</option>
         </select>
-        <button class="btn-bot" id="btn-bot">봇 연습 시작</button>
+        <button class="btn-bot" id="btn-bot" style="white-space:nowrap;">봇 연습 시작</button>
       </div>
+
       <button class="btn-rank" id="btn-toggle-rank">실시간 K/D 랭킹 보드</button>
     </div>
-
-    <div id="p2p-panel" class="p2p-box">
-      <div id="p2p-step-text" style="color:#f0883e; font-weight:bold;"></div>
-      <textarea id="p2p-local-code" readonly placeholder="생성된 연결 코드"></textarea>
-      <button class="btn-rank" id="btn-copy-code" style="padding:6px 10px; font-size:0.8rem;">내 코드 복사</button>
-      <textarea id="p2p-remote-code" placeholder="상대방이 보낸 코드를 여기에 붙여넣기"></textarea>
-      <button class="btn-pvp" id="btn-connect-code" style="padding:7px 12px; font-size:0.85rem;">상대 코드 연결하기</button>
-    </div>
-
-    <div id="queue-status"></div>
 
     <div id="ranking-box" style="display:none; margin-top:10px;">
       <table>
@@ -334,8 +359,25 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+const ACCOUNTS_KEY = 'mc_smash_accounts_v1';
 const STORAGE_KEY = 'mc_smash_kd_rankings_v2';
 const syncChannel = new BroadcastChannel('mc_smash_realtime_sync');
+
+function loadAccounts() {
+  try {
+    const raw = localStorage.getItem(ACCOUNTS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    'CrystalKing': '1234',
+    'MaceGod': '1234',
+    'CartDrifter': '1234'
+  };
+}
+
+function saveAccounts(accounts) {
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+}
 
 function loadRankings() {
   try {
@@ -396,6 +438,54 @@ window.addEventListener('storage', (e) => {
   if (e.key === STORAGE_KEY) renderRankings();
 });
 
+let myName = '';
+
+function attemptLogin() {
+  const nick = document.getElementById('login-nickname').value.trim();
+  const pw = document.getElementById('login-password').value.trim();
+  const statusEl = document.getElementById('login-status');
+
+  if (!nick || nick.length < 2) {
+    statusEl.textContent = '닉네임은 2글자 이상 입력해주세요.';
+    return;
+  }
+  if (!pw || pw.length < 4) {
+    statusEl.textContent = '비밀번호는 4자리 이상 입력해주세요.';
+    return;
+  }
+
+  const accounts = loadAccounts();
+  if (Object.prototype.hasOwnProperty.call(accounts, nick)) {
+    if (accounts[nick] !== pw) {
+      statusEl.textContent = '이미 사용 중인 닉네임입니다. 비밀번호가 일치하지 않습니다.';
+      return;
+    }
+  } else {
+    accounts[nick] = pw;
+    saveAccounts(accounts);
+  }
+
+  myName = nick;
+  statusEl.textContent = '';
+  document.getElementById('current-user-label').textContent = myName;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('menu-screen').style.display = 'flex';
+  renderRankings();
+}
+
+document.getElementById('btn-login').onclick = attemptLogin;
+document.getElementById('login-password').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') attemptLogin();
+});
+
+document.getElementById('btn-logout').onclick = () => {
+  cleanupNetwork();
+  myName = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+};
+
 document.getElementById('btn-toggle-rank').onclick = () => {
   const box = document.getElementById('ranking-box');
   if (box.style.display === 'none') {
@@ -406,102 +496,164 @@ document.getElementById('btn-toggle-rank').onclick = () => {
   }
 };
 
+document.getElementById('btn-open-duel').onclick = () => {
+  const box = document.getElementById('duel-code-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('room-code-input').focus();
+};
+
 let gameMode = null;
 let botDifficulty = 'normal';
-let queueTimer = null;
-let myName = 'Player1';
 let opponentName = 'Bot';
 let isHost = true;
-let rtcPeer = null;
-let rtcChannel = null;
+let peer = null;
+let conn = null;
+let activeRoomCode = '';
+let localSeekInterval = null;
+
+function cleanupNetwork() {
+  if (localSeekInterval) {
+    clearInterval(localSeekInterval);
+    localSeekInterval = null;
+  }
+  if (conn) {
+    try { conn.close(); } catch (e) {}
+    conn = null;
+  }
+  if (peer) {
+    try { peer.destroy(); } catch (e) {}
+    peer = null;
+  }
+  activeRoomCode = '';
+}
 
 function sendNetMessage(payload) {
-  if (rtcChannel && rtcChannel.readyState === 'open') {
-    rtcChannel.send(JSON.stringify(payload));
-  } else {
-    syncChannel.postMessage(payload);
+  if (conn && conn.open) {
+    conn.send(payload);
+  } else if (activeRoomCode) {
+    syncChannel.postMessage({ ...payload, roomCode: activeRoomCode, sender: myName });
   }
 }
 
-function setupRtcConnection(isCreator) {
-  rtcPeer = new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+function handleNetData(msg) {
+  if (!msg) return;
+  if (msg.type === 'RANK_UPDATE') {
+    renderRankings();
+    return;
+  }
+  if (msg.roomCode && msg.roomCode !== activeRoomCode) return;
+  if (msg.sender === myName) return;
+
+  if (msg.type === 'LOCAL_SEEK' && !gameMode && activeRoomCode) {
+    clearInterval(localSeekInterval);
+    syncChannel.postMessage({
+      type: 'LOCAL_ACCEPT',
+      roomCode: activeRoomCode,
+      sender: myName
+    });
+    startMatch('pvp', msg.sender, false);
+  } else if (msg.type === 'LOCAL_ACCEPT' && !gameMode && activeRoomCode) {
+    clearInterval(localSeekInterval);
+    startMatch('pvp', msg.sender, true);
+  } else if (msg.type === 'HELLO' && !gameMode) {
+    opponentName = msg.name || '상대방';
+    if (conn && conn.open) {
+      conn.send({ type: 'START', name: myName });
+    }
+    startMatch('pvp', opponentName, true);
+  } else if (msg.type === 'START' && !gameMode) {
+    opponentName = msg.name || '방장';
+    startMatch('pvp', opponentName, false);
+  } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
+    const opp = players[1];
+    if (opp) {
+      opp.x = msg.x;
+      opp.y = msg.y;
+      opp.vx = msg.vx;
+      opp.vy = msg.vy;
+      opp.facing = msg.facing;
+      opp.weapon = msg.weapon;
+      opp.damage = msg.damage;
+      opp.stocks = msg.stocks;
+      updateHUD();
+    }
+  } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
+    if (msg.kind === 'primary') performPrimaryAttack(1, true);
+    if (msg.kind === 'secondary') performSecondaryAction(1, true);
+  }
+}
+
+syncChannel.onmessage = (ev) => handleNetData(ev.data);
+
+function startCodeMatchmaking() {
+  const rawCode = document.getElementById('room-code-input').value.trim();
+  const statusEl = document.getElementById('queue-status');
+  if (!rawCode) {
+    statusEl.textContent = '입장할 방 코드를 입력해주세요 (예: 1515)';
+    return;
+  }
+
+  cleanupNetwork();
+  activeRoomCode = rawCode;
+  const hostPeerId = 'mc_smash_pvp_room_' + encodeURIComponent(rawCode);
+  statusEl.textContent = `[코드: ${rawCode}] 같은 코드를 입력한 상대를 찾는 중...`;
+
+  localSeekInterval = setInterval(() => {
+    if (!gameMode && activeRoomCode) {
+      syncChannel.postMessage({
+        type: 'LOCAL_SEEK',
+        roomCode: activeRoomCode,
+        sender: myName
+      });
+    }
+  }, 500);
+
+  if (typeof Peer === 'undefined') return;
+
+  peer = new Peer(hostPeerId);
+
+  peer.on('open', () => {
+    isHost = true;
+    peer.on('connection', (incomingConn) => {
+      conn = incomingConn;
+      conn.on('data', (data) => handleNetData(data));
+      conn.on('close', () => {
+        if (gameMode === 'pvp' && !matchEnded) {
+          alert('상대방과의 연결이 종료되었습니다.');
+          exitToMenu();
+        }
+      });
+    });
   });
 
-  rtcPeer.onicecandidate = (ev) => {
-    if (!ev.candidate && rtcPeer.localDescription) {
-      document.getElementById('p2p-local-code').value = btoa(unescape(encodeURIComponent(JSON.stringify({
-        sdp: rtcPeer.localDescription,
-        name: myName
-      }))));
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') {
+      try { peer.destroy(); } catch (e) {}
+      isHost = false;
+      peer = new Peer();
+      peer.on('open', () => {
+        conn = peer.connect(hostPeerId, { reliable: true });
+        conn.on('open', () => {
+          conn.send({ type: 'HELLO', name: myName });
+        });
+        conn.on('data', (data) => handleNetData(data));
+        conn.on('close', () => {
+          if (gameMode === 'pvp' && !matchEnded) {
+            alert('방장과의 연결이 종료되었습니다.');
+            exitToMenu();
+          }
+        });
+      });
+    } else {
+      statusEl.textContent = `[코드: ${rawCode}] 대기 중... (같은 코드를 입력한 상대를 기다립니다)`;
     }
-  };
-
-  if (isCreator) {
-    rtcChannel = rtcPeer.createDataChannel('mc_pvp_channel');
-    bindDataChannel(rtcChannel);
-  } else {
-    rtcPeer.ondatachannel = (ev) => {
-      rtcChannel = ev.channel;
-      bindDataChannel(rtcChannel);
-    };
-  }
+  });
 }
 
-function bindDataChannel(ch) {
-  ch.onopen = () => {
-    document.getElementById('p2p-panel').style.display = 'none';
-    document.getElementById('queue-status').textContent = '';
-    startMatch('pvp', opponentName, isHost);
-  };
-  ch.onmessage = (ev) => {
-    try {
-      handleNetData(JSON.parse(ev.data));
-    } catch (e) {}
-  };
-}
-
-document.getElementById('btn-create-room').onclick = async () => {
-  myName = document.getElementById('nickname').value.trim() || 'Player1';
-  isHost = true;
-  document.getElementById('p2p-panel').style.display = 'block';
-  document.getElementById('p2p-step-text').textContent = '1단계: 아래 내 코드를 복사해 친구에게 보내고, 친구의 응답 코드를 붙여넣으세요.';
-  setupRtcConnection(true);
-  const offer = await rtcPeer.createOffer();
-  await rtcPeer.setLocalDescription(offer);
-};
-
-document.getElementById('btn-join-room').onclick = () => {
-  myName = document.getElementById('nickname').value.trim() || 'Player1';
-  isHost = false;
-  document.getElementById('p2p-panel').style.display = 'block';
-  document.getElementById('p2p-step-text').textContent = '1단계: 친구에게 받은 초대 코드를 아래에 붙여넣고 연결하기를 누르세요.';
-  setupRtcConnection(false);
-};
-
-document.getElementById('btn-copy-code').onclick = () => {
-  const area = document.getElementById('p2p-local-code');
-  area.select();
-  navigator.clipboard.writeText(area.value);
-  document.getElementById('queue-status').textContent = '연결 코드가 클립보드에 복사되었습니다!';
-};
-
-document.getElementById('btn-connect-code').onclick = async () => {
-  const raw = document.getElementById('p2p-remote-code').value.trim();
-  if (!raw || !rtcPeer) return;
-  try {
-    const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
-    opponentName = parsed.name || 'Friend';
-    await rtcPeer.setRemoteDescription(new RTCSessionDescription(parsed.sdp));
-    if (parsed.sdp.type === 'offer') {
-      const answer = await rtcPeer.createAnswer();
-      await rtcPeer.setLocalDescription(answer);
-      document.getElementById('p2p-step-text').textContent = '2단계: 위에 새로 생성된 응답 코드를 복사해 방장에게 보내면 자동 시작됩니다!';
-    }
-  } catch (e) {
-    alert('올바르지 않은 연결 코드입니다.');
-  }
-};
+document.getElementById('btn-join-code').onclick = startCodeMatchmaking;
+document.getElementById('room-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startCodeMatchmaking();
+});
 
 const GRAVITY = 0.58;
 const STAGE = {
@@ -525,7 +677,6 @@ let windCharges = [];
 let particles = [];
 let swingAnimations = [];
 let matchEnded = false;
-let mySessionId = Math.random().toString(36).slice(2);
 
 function createPlayer(id, name, x, color, isBot = false) {
   return {
@@ -564,6 +715,10 @@ function resetEntities() {
 }
 
 function startMatch(mode, oppName, hostFlag = true) {
+  if (localSeekInterval) {
+    clearInterval(localSeekInterval);
+    localSeekInterval = null;
+  }
   matchEnded = false;
   gameMode = mode;
   opponentName = oppName;
@@ -594,11 +749,8 @@ function startMatch(mode, oppName, hostFlag = true) {
 
 function exitToMenu() {
   gameMode = null;
-  if (queueTimer) { clearTimeout(queueTimer); queueTimer = null; }
-  if (rtcChannel) { rtcChannel.close(); rtcChannel = null; }
-  if (rtcPeer) { rtcPeer.close(); rtcPeer = null; }
+  cleanupNetwork();
   document.getElementById('queue-status').textContent = '';
-  document.getElementById('p2p-panel').style.display = 'none';
   document.getElementById('menu-screen').style.display = 'flex';
   document.getElementById('hud').style.display = 'none';
   document.getElementById('hotbar').style.display = 'none';
@@ -610,60 +762,9 @@ function exitToMenu() {
 document.getElementById('exit-btn').onclick = exitToMenu;
 
 document.getElementById('btn-bot').onclick = () => {
-  myName = document.getElementById('nickname').value.trim() || 'Player1';
   botDifficulty = document.getElementById('bot-diff').value;
   const diffLabel = botDifficulty === 'easy' ? '초급 봇' : botDifficulty === 'normal' ? '중급 봇' : '마스터 봇';
   startMatch('bot', diffLabel, true);
-};
-
-function handleNetData(msg) {
-  if (msg.type === 'RANK_UPDATE') {
-    renderRankings();
-    return;
-  }
-  if (msg.type === 'SEEK' && msg.id !== mySessionId && !gameMode) {
-    syncChannel.postMessage({ type: 'ACCEPT', fromId: mySessionId, fromName: myName, toId: msg.id });
-    if (queueTimer) clearTimeout(queueTimer);
-    startMatch('pvp', msg.name, false);
-  } else if (msg.type === 'ACCEPT' && msg.toId === mySessionId && !gameMode) {
-    if (queueTimer) clearTimeout(queueTimer);
-    startMatch('pvp', msg.fromName, true);
-  } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
-    const opp = players[1];
-    if (opp) {
-      opp.x = msg.x;
-      opp.y = msg.y;
-      opp.vx = msg.vx;
-      opp.vy = msg.vy;
-      opp.facing = msg.facing;
-      opp.weapon = msg.weapon;
-      opp.damage = msg.damage;
-      opp.stocks = msg.stocks;
-      updateHUD();
-    }
-  } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
-    if (msg.kind === 'primary') performPrimaryAttack(1, true);
-    if (msg.kind === 'secondary') performSecondaryAction(1, true);
-  }
-}
-
-syncChannel.onmessage = (ev) => handleNetData(ev.data);
-
-document.getElementById('btn-queue').onclick = () => {
-  myName = document.getElementById('nickname').value.trim() || 'Player1';
-  const statusEl = document.getElementById('queue-status');
-  statusEl.textContent = '1대1 대전 상대를 찾는 중... (새 탭을 열어 동시에 누르면 즉시 1:1 매칭!)';
-
-  syncChannel.postMessage({ type: 'SEEK', id: mySessionId, name: myName });
-
-  if (queueTimer) clearTimeout(queueTimer);
-  queueTimer = setTimeout(() => {
-    if (!gameMode) {
-      statusEl.textContent = '매칭 상대를 연결했습니다!';
-      botDifficulty = 'hard';
-      startMatch('bot', 'PvP_Rival_' + Math.floor(100 + Math.random() * 900), true);
-    }
-  }, 4000);
 };
 
 function selectWeapon(playerIdx, slot) {
@@ -830,8 +931,6 @@ function performPrimaryAttack(idx, fromRemote = false) {
       flameArrows.push({
         x: cx + p.facing * 18,
         y: cy - 4,
-        targetX: existingCart.x,
-        targetY: existingCart.y,
         vx: p.facing * 24,
         vy: 0,
         ownerIdx: idx,
