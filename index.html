@@ -26,10 +26,10 @@
     align-items: center;
     justify-content: center;
     z-index: 20;
-    gap: 18px;
+    gap: 16px;
   }
   h1 {
-    font-size: 2.6rem;
+    font-size: 2.5rem;
     letter-spacing: -1px;
     text-shadow: 0 4px 16px rgba(0, 210, 255, 0.4);
     color: #58a6ff;
@@ -37,21 +37,21 @@
   .subtitle {
     color: #8b949e;
     font-size: 0.95rem;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
   .panel {
-    background: rgba(22, 27, 34, 0.9);
+    background: rgba(22, 27, 34, 0.92);
     border: 1px solid #30363d;
     border-radius: 12px;
-    padding: 20px 28px;
-    width: 460px;
-    max-width: 92vw;
+    padding: 20px 26px;
+    width: 490px;
+    max-width: 94vw;
     box-shadow: 0 12px 32px rgba(0,0,0,0.6);
   }
   .input-row {
     display: flex;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   input[type="text"], select {
     flex: 1;
@@ -60,28 +60,29 @@
     color: #fff;
     padding: 10px 12px;
     border-radius: 8px;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
   .btn-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 9px;
   }
   button {
     cursor: pointer;
     border: none;
     border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 1rem;
+    padding: 11px 14px;
+    font-size: 0.96rem;
     font-weight: bold;
     transition: transform 0.1s, filter 0.15s;
   }
   button:hover { filter: brightness(1.12); }
   button:active { transform: scale(0.98); }
   .btn-pvp { background: linear-gradient(135deg, #238636, #2ea043); color: #fff; }
+  .btn-direct { background: linear-gradient(135deg, #8957e5, #a371f7); color: #fff; }
   .btn-bot { background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; }
   .btn-rank { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
-  .bot-options {
+  .bot-options, .direct-options {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -91,7 +92,29 @@
     color: #f0883e;
     font-weight: bold;
     margin-top: 8px;
-    min-height: 22px;
+    min-height: 20px;
+    font-size: 0.88rem;
+  }
+  .p2p-box {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  textarea {
+    width: 100%;
+    height: 54px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #79c0ff;
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 0.75rem;
+    resize: none;
+    margin: 6px 0;
   }
   table {
     width: 100%;
@@ -100,7 +123,7 @@
     font-size: 0.9rem;
   }
   th, td {
-    padding: 8px;
+    padding: 7px;
     border-bottom: 1px solid #30363d;
     text-align: center;
   }
@@ -123,6 +146,30 @@
   .stat-name { font-size: 0.85rem; color: #8b949e; }
   .stat-dmg { font-size: 1.5rem; font-weight: 900; color: #ff7b72; }
   .stat-stocks { font-size: 0.95rem; color: #79c0ff; }
+  #live-rank-mini {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    display: none;
+    background: rgba(13, 17, 23, 0.85);
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 10px 14px;
+    z-index: 10;
+    font-size: 0.8rem;
+    min-width: 195px;
+  }
+  #live-rank-mini h4 {
+    color: #58a6ff;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+  }
+  #live-rank-mini div {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    color: #c9d1d9;
+  }
   #hotbar {
     position: absolute;
     bottom: 18px;
@@ -137,8 +184,8 @@
     z-index: 10;
   }
   .slot {
-    width: 78px;
-    height: 68px;
+    width: 84px;
+    height: 70px;
     background: #0d1117;
     border: 2px solid #30363d;
     border-radius: 8px;
@@ -165,7 +212,7 @@
     font-weight: bold;
   }
   .slot-sub {
-    font-size: 0.65rem;
+    font-size: 0.64rem;
     color: #a371f7;
     margin-top: 2px;
   }
@@ -190,7 +237,7 @@
 
 <div id="menu-screen">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">철퇴 · 엔드 크리스탈 & 리스폰 정박기 · TNT 카트 실전 스매시</div>
+  <div class="subtitle">철퇴 · 엔드 크리스탈 & 1충전 정박기 · TNT 카트 화살 기폭</div>
 
   <div class="panel">
     <div class="input-row">
@@ -198,21 +245,33 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn-pvp" id="btn-queue">1대1 온라인 매칭 큐 참가</button>
+      <button class="btn-pvp" id="btn-queue">1대1 자동 매칭 큐 (같은 기기/탭 즉시 연결)</button>
+      <div class="direct-options">
+        <button class="btn-direct" id="btn-create-room" style="flex:1;">1대1 방 만들기 (원격 초대)</button>
+        <button class="btn-direct" id="btn-join-room" style="flex:1;">초대 코드로 참가</button>
+      </div>
       <div class="bot-options">
         <select id="bot-diff">
           <option value="easy">봇 연습 (쉬움)</option>
           <option value="normal" selected>봇 연습 (보통)</option>
-          <option value="hard">봇 연습 (어려움 - CPvP/카트 콤보)</option>
+          <option value="hard">봇 연습 (어려움 - 실전 콤보)</option>
         </select>
         <button class="btn-bot" id="btn-bot">봇 연습 시작</button>
       </div>
-      <button class="btn-rank" id="btn-toggle-rank">K/D 랭킹 보드 보기</button>
+      <button class="btn-rank" id="btn-toggle-rank">실시간 K/D 랭킹 보드</button>
+    </div>
+
+    <div id="p2p-panel" class="p2p-box">
+      <div id="p2p-step-text" style="color:#f0883e; font-weight:bold;"></div>
+      <textarea id="p2p-local-code" readonly placeholder="생성된 연결 코드"></textarea>
+      <button class="btn-rank" id="btn-copy-code" style="padding:6px 10px; font-size:0.8rem;">내 코드 복사</button>
+      <textarea id="p2p-remote-code" placeholder="상대방이 보낸 코드를 여기에 붙여넣기"></textarea>
+      <button class="btn-pvp" id="btn-connect-code" style="padding:7px 12px; font-size:0.85rem;">상대 코드 연결하기</button>
     </div>
 
     <div id="queue-status"></div>
 
-    <div id="ranking-box" style="display:none; margin-top:12px;">
+    <div id="ranking-box" style="display:none; margin-top:10px;">
       <table>
         <thead>
           <tr><th>순위</th><th>플레이어</th><th>Kills</th><th>Deaths</th><th>K/D</th></tr>
@@ -224,6 +283,11 @@
 </div>
 
 <button id="exit-btn">로비로 나가기</button>
+
+<div id="live-rank-mini">
+  <h4>실시간 TOP 랭킹</h4>
+  <div id="mini-rank-list"></div>
+</div>
 
 <div id="hud">
   <div class="stat-box">
@@ -253,7 +317,7 @@
   <div class="slot" id="slot-3">
     <span class="slot-key">3</span>
     <strong>TNT 카트</strong>
-    <span class="slot-sub">우클릭: 돌풍구</span>
+    <span class="slot-sub">좌클릭: 화살기폭</span>
   </div>
 </div>
 
@@ -271,10 +335,12 @@ window.addEventListener('resize', resize);
 resize();
 
 const STORAGE_KEY = 'mc_smash_kd_rankings_v2';
+const syncChannel = new BroadcastChannel('mc_smash_realtime_sync');
+
 function loadRankings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw !== null) return JSON.parse(raw);
   } catch (e) {}
   return [
     { name: 'CrystalKing', kills: 24, deaths: 8 },
@@ -282,6 +348,7 @@ function loadRankings() {
     { name: 'CartDrifter', kills: 15, deaths: 10 }
   ];
 }
+
 function saveRanking(name, killsAdd, deathsAdd) {
   const list = loadRankings();
   let entry = list.find(x => x.name === name);
@@ -297,18 +364,37 @@ function saveRanking(name, killsAdd, deathsAdd) {
     return kdB - kdA || b.kills - a.kills;
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  renderRankings();
+  syncChannel.postMessage({ type: 'RANK_UPDATE' });
 }
+
 function renderRankings() {
   const tbody = document.getElementById('ranking-body');
+  const miniList = document.getElementById('mini-rank-list');
   const list = loadRankings();
-  tbody.innerHTML = '';
-  list.forEach((item, idx) => {
-    const kd = item.deaths === 0 ? item.kills.toFixed(2) : (item.kills / item.deaths).toFixed(2);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${idx + 1}</td><td>${item.name}</td><td>${item.kills}</td><td>${item.deaths}</td><td>${kd}</td>`;
-    tbody.appendChild(tr);
-  });
+  if (tbody) {
+    tbody.innerHTML = '';
+    list.forEach((item, idx) => {
+      const kd = item.deaths === 0 ? item.kills.toFixed(2) : (item.kills / item.deaths).toFixed(2);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${idx + 1}</td><td>${item.name}</td><td>${item.kills}</td><td>${item.deaths}</td><td>${kd}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  if (miniList) {
+    miniList.innerHTML = '';
+    list.slice(0, 4).forEach((item, idx) => {
+      const kd = item.deaths === 0 ? item.kills.toFixed(2) : (item.kills / item.deaths).toFixed(2);
+      const row = document.createElement('div');
+      row.innerHTML = `<span>${idx + 1}. ${item.name}</span><span>${item.kills}K/${item.deaths}D (${kd})</span>`;
+      miniList.appendChild(row);
+    });
+  }
 }
+
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) renderRankings();
+});
 
 document.getElementById('btn-toggle-rank').onclick = () => {
   const box = document.getElementById('ranking-box');
@@ -322,11 +408,100 @@ document.getElementById('btn-toggle-rank').onclick = () => {
 
 let gameMode = null;
 let botDifficulty = 'normal';
-let matchChannel = null;
 let queueTimer = null;
 let myName = 'Player1';
 let opponentName = 'Bot';
 let isHost = true;
+let rtcPeer = null;
+let rtcChannel = null;
+
+function sendNetMessage(payload) {
+  if (rtcChannel && rtcChannel.readyState === 'open') {
+    rtcChannel.send(JSON.stringify(payload));
+  } else {
+    syncChannel.postMessage(payload);
+  }
+}
+
+function setupRtcConnection(isCreator) {
+  rtcPeer = new RTCPeerConnection({
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  });
+
+  rtcPeer.onicecandidate = (ev) => {
+    if (!ev.candidate && rtcPeer.localDescription) {
+      document.getElementById('p2p-local-code').value = btoa(unescape(encodeURIComponent(JSON.stringify({
+        sdp: rtcPeer.localDescription,
+        name: myName
+      }))));
+    }
+  };
+
+  if (isCreator) {
+    rtcChannel = rtcPeer.createDataChannel('mc_pvp_channel');
+    bindDataChannel(rtcChannel);
+  } else {
+    rtcPeer.ondatachannel = (ev) => {
+      rtcChannel = ev.channel;
+      bindDataChannel(rtcChannel);
+    };
+  }
+}
+
+function bindDataChannel(ch) {
+  ch.onopen = () => {
+    document.getElementById('p2p-panel').style.display = 'none';
+    document.getElementById('queue-status').textContent = '';
+    startMatch('pvp', opponentName, isHost);
+  };
+  ch.onmessage = (ev) => {
+    try {
+      handleNetData(JSON.parse(ev.data));
+    } catch (e) {}
+  };
+}
+
+document.getElementById('btn-create-room').onclick = async () => {
+  myName = document.getElementById('nickname').value.trim() || 'Player1';
+  isHost = true;
+  document.getElementById('p2p-panel').style.display = 'block';
+  document.getElementById('p2p-step-text').textContent = '1단계: 아래 내 코드를 복사해 친구에게 보내고, 친구의 응답 코드를 붙여넣으세요.';
+  setupRtcConnection(true);
+  const offer = await rtcPeer.createOffer();
+  await rtcPeer.setLocalDescription(offer);
+};
+
+document.getElementById('btn-join-room').onclick = () => {
+  myName = document.getElementById('nickname').value.trim() || 'Player1';
+  isHost = false;
+  document.getElementById('p2p-panel').style.display = 'block';
+  document.getElementById('p2p-step-text').textContent = '1단계: 친구에게 받은 초대 코드를 아래에 붙여넣고 연결하기를 누르세요.';
+  setupRtcConnection(false);
+};
+
+document.getElementById('btn-copy-code').onclick = () => {
+  const area = document.getElementById('p2p-local-code');
+  area.select();
+  navigator.clipboard.writeText(area.value);
+  document.getElementById('queue-status').textContent = '연결 코드가 클립보드에 복사되었습니다!';
+};
+
+document.getElementById('btn-connect-code').onclick = async () => {
+  const raw = document.getElementById('p2p-remote-code').value.trim();
+  if (!raw || !rtcPeer) return;
+  try {
+    const parsed = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    opponentName = parsed.name || 'Friend';
+    await rtcPeer.setRemoteDescription(new RTCSessionDescription(parsed.sdp));
+    if (parsed.sdp.type === 'offer') {
+      const answer = await rtcPeer.createAnswer();
+      await rtcPeer.setLocalDescription(answer);
+      document.getElementById('p2p-step-text').textContent = '2단계: 위에 새로 생성된 응답 코드를 복사해 방장에게 보내면 자동 시작됩니다!';
+    }
+  } catch (e) {
+    alert('올바르지 않은 연결 코드입니다.');
+  }
+};
 
 const GRAVITY = 0.58;
 const STAGE = {
@@ -345,11 +520,12 @@ let players = [];
 let crystals = [];
 let anchors = [];
 let tntCarts = [];
-let rails = [];
+let flameArrows = [];
 let windCharges = [];
 let particles = [];
 let swingAnimations = [];
 let matchEnded = false;
+let mySessionId = Math.random().toString(36).slice(2);
 
 function createPlayer(id, name, x, color, isBot = false) {
   return {
@@ -381,7 +557,7 @@ function resetEntities() {
   crystals = [];
   anchors = [];
   tntCarts = [];
-  rails = [];
+  flameArrows = [];
   windCharges = [];
   particles = [];
   swingAnimations = [];
@@ -394,17 +570,24 @@ function startMatch(mode, oppName, hostFlag = true) {
   isHost = hostFlag;
   resetEntities();
 
+  const p1X = isHost ? STAGE.x + STAGE.w * 0.25 : STAGE.x + STAGE.w * 0.75;
+  const p2X = isHost ? STAGE.x + STAGE.w * 0.75 : STAGE.x + STAGE.w * 0.25;
+
   players = [
-    createPlayer(0, myName, STAGE.x + STAGE.w * 0.25, '#58a6ff', false),
-    createPlayer(1, opponentName, STAGE.x + STAGE.w * 0.75, '#ff7b72', mode === 'bot')
+    createPlayer(0, myName, p1X, '#58a6ff', false),
+    createPlayer(1, opponentName, p2X, '#ff7b72', mode === 'bot')
   ];
+  players[0].facing = isHost ? 1 : -1;
+  players[1].facing = isHost ? -1 : 1;
 
   document.getElementById('p1-label').textContent = players[0].name;
   document.getElementById('p2-label').textContent = players[1].name;
   document.getElementById('menu-screen').style.display = 'none';
   document.getElementById('hud').style.display = 'flex';
   document.getElementById('hotbar').style.display = 'flex';
+  document.getElementById('live-rank-mini').style.display = 'block';
   document.getElementById('exit-btn').style.display = 'block';
+  renderRankings();
   selectWeapon(0, 1);
   updateHUD();
 }
@@ -412,12 +595,16 @@ function startMatch(mode, oppName, hostFlag = true) {
 function exitToMenu() {
   gameMode = null;
   if (queueTimer) { clearTimeout(queueTimer); queueTimer = null; }
-  if (matchChannel) { matchChannel.close(); matchChannel = null; }
+  if (rtcChannel) { rtcChannel.close(); rtcChannel = null; }
+  if (rtcPeer) { rtcPeer.close(); rtcPeer = null; }
   document.getElementById('queue-status').textContent = '';
+  document.getElementById('p2p-panel').style.display = 'none';
   document.getElementById('menu-screen').style.display = 'flex';
   document.getElementById('hud').style.display = 'none';
   document.getElementById('hotbar').style.display = 'none';
+  document.getElementById('live-rank-mini').style.display = 'none';
   document.getElementById('exit-btn').style.display = 'none';
+  renderRankings();
 }
 
 document.getElementById('exit-btn').onclick = exitToMenu;
@@ -429,49 +616,54 @@ document.getElementById('btn-bot').onclick = () => {
   startMatch('bot', diffLabel, true);
 };
 
+function handleNetData(msg) {
+  if (msg.type === 'RANK_UPDATE') {
+    renderRankings();
+    return;
+  }
+  if (msg.type === 'SEEK' && msg.id !== mySessionId && !gameMode) {
+    syncChannel.postMessage({ type: 'ACCEPT', fromId: mySessionId, fromName: myName, toId: msg.id });
+    if (queueTimer) clearTimeout(queueTimer);
+    startMatch('pvp', msg.name, false);
+  } else if (msg.type === 'ACCEPT' && msg.toId === mySessionId && !gameMode) {
+    if (queueTimer) clearTimeout(queueTimer);
+    startMatch('pvp', msg.fromName, true);
+  } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
+    const opp = players[1];
+    if (opp) {
+      opp.x = msg.x;
+      opp.y = msg.y;
+      opp.vx = msg.vx;
+      opp.vy = msg.vy;
+      opp.facing = msg.facing;
+      opp.weapon = msg.weapon;
+      opp.damage = msg.damage;
+      opp.stocks = msg.stocks;
+      updateHUD();
+    }
+  } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
+    if (msg.kind === 'primary') performPrimaryAttack(1, true);
+    if (msg.kind === 'secondary') performSecondaryAction(1, true);
+  }
+}
+
+syncChannel.onmessage = (ev) => handleNetData(ev.data);
+
 document.getElementById('btn-queue').onclick = () => {
   myName = document.getElementById('nickname').value.trim() || 'Player1';
   const statusEl = document.getElementById('queue-status');
-  statusEl.textContent = '1대1 대전 상대를 찾는 중... (다른 브라우저 탭에서 동시 참가 가능)';
+  statusEl.textContent = '1대1 대전 상대를 찾는 중... (새 탭을 열어 동시에 누르면 즉시 1:1 매칭!)';
 
-  if (matchChannel) matchChannel.close();
-  matchChannel = new BroadcastChannel('mc_smash_1v1_queue');
-  const myId = Math.random().toString(36).slice(2);
+  syncChannel.postMessage({ type: 'SEEK', id: mySessionId, name: myName });
 
-  matchChannel.onmessage = (ev) => {
-    const msg = ev.data;
-    if (msg.type === 'SEEK' && msg.id !== myId && !gameMode) {
-      matchChannel.postMessage({ type: 'ACCEPT', fromId: myId, fromName: myName, toId: msg.id });
-      if (queueTimer) clearTimeout(queueTimer);
-      startMatch('pvp', msg.name, false);
-    } else if (msg.type === 'ACCEPT' && msg.toId === myId && !gameMode) {
-      if (queueTimer) clearTimeout(queueTimer);
-      startMatch('pvp', msg.fromName, true);
-    } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
-      const opp = players[1];
-      if (opp) {
-        opp.x = msg.x;
-        opp.y = msg.y;
-        opp.vx = msg.vx;
-        opp.vy = msg.vy;
-        opp.facing = msg.facing;
-        opp.weapon = msg.weapon;
-      }
-    } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
-      if (msg.kind === 'primary') performPrimaryAttack(1, true);
-      if (msg.kind === 'secondary') performSecondaryAction(1, true);
-    }
-  };
-
-  matchChannel.postMessage({ type: 'SEEK', id: myId, name: myName });
-
+  if (queueTimer) clearTimeout(queueTimer);
   queueTimer = setTimeout(() => {
     if (!gameMode) {
-      statusEl.textContent = '실시간 상대를 매칭했습니다!';
+      statusEl.textContent = '매칭 상대를 연결했습니다!';
       botDifficulty = 'hard';
-      startMatch('bot', 'Challenger_' + Math.floor(100 + Math.random() * 900), true);
+      startMatch('bot', 'PvP_Rival_' + Math.floor(100 + Math.random() * 900), true);
     }
-  }, 3500);
+  }, 4000);
 };
 
 function selectWeapon(playerIdx, slot) {
@@ -532,9 +724,9 @@ function spawnParticles(x, y, color, count, speed) {
 }
 
 function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, lowFeetProtection = false) {
-  spawnParticles(x, y, '#ff7b72', 26, 8);
-  spawnParticles(x, y, '#ffa657', 20, 6);
-  spawnParticles(x, y, '#f8e3a1', 14, 4);
+  spawnParticles(x, y, '#ff7b72', 28, 8.5);
+  spawnParticles(x, y, '#ffa657', 22, 6.5);
+  spawnParticles(x, y, '#f8e3a1', 14, 4.5);
 
   players.forEach((target, idx) => {
     const cx = target.x + target.w / 2;
@@ -543,16 +735,16 @@ function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, low
     const dy = cy - y;
     const dist = Math.hypot(dx, dy);
     if (dist <= radius) {
-      let mult = 1 - (dist / radius) * 0.45;
+      let mult = 1 - (dist / radius) * 0.42;
       if (lowFeetProtection && idx === ownerIdx && (target.y + target.h) > y + 6) {
         mult *= 0.25;
       }
       const dmg = Math.round(baseDamage * mult);
       target.damage += dmg;
-      const kbScale = (1 + target.damage / 85) * baseKnockback * mult;
+      const kbScale = (1 + target.damage / 82) * baseKnockback * mult;
       const angle = Math.atan2(dy - 18, dx);
       target.vx += Math.cos(angle) * kbScale;
-      target.vy += Math.sin(angle) * kbScale - 4.5 * mult;
+      target.vy += Math.sin(angle) * kbScale - 4.8 * mult;
       target.onGround = false;
     }
   });
@@ -563,8 +755,8 @@ function performPrimaryAttack(idx, fromRemote = false) {
   const p = players[idx];
   if (!p || p.attackCooldown > 0) return;
 
-  if (!fromRemote && gameMode === 'pvp' && idx === 0 && matchChannel) {
-    matchChannel.postMessage({ type: 'ACTION', kind: 'primary' });
+  if (!fromRemote && gameMode === 'pvp' && idx === 0) {
+    sendNetMessage({ type: 'ACTION', kind: 'primary' });
   }
 
   const cx = p.x + p.w / 2;
@@ -621,40 +813,31 @@ function performPrimaryAttack(idx, fromRemote = false) {
       spawnParticles(placeX, placeY - 18, '#d2a8ff', 10, 3);
     }
   } else if (p.weapon === 3) {
-    p.attackCooldown = 16;
-    const startX = cx + p.facing * 26;
-    const surfaceY = getSurfaceY(startX, p.y + p.h);
+    p.attackCooldown = 14;
+    const placeX = cx + p.facing * 46;
+    const placeY = getSurfaceY(placeX, p.y + p.h);
+    const existingCart = tntCarts.find(c => Math.hypot(c.x - placeX, c.y - (placeY - 15)) < 68);
 
-    swingAnimations.push({
-      ownerIdx: idx,
-      type: 'rail_cart_deploy',
-      x: startX,
-      y: surfaceY,
-      facing: p.facing,
-      timer: 18,
-      maxTimer: 18
-    });
-
-    for (let i = 0; i < 4; i++) {
-      rails.push({
-        x: startX + p.facing * (i * 26),
-        y: surfaceY - 3,
-        life: 85
+    if (!existingCart) {
+      tntCarts.push({
+        x: placeX,
+        y: placeY - 15,
+        ownerIdx: idx,
+        life: 360
+      });
+      spawnParticles(placeX, placeY - 12, '#8b949e', 8, 2.5);
+    } else {
+      flameArrows.push({
+        x: cx + p.facing * 18,
+        y: cy - 4,
+        targetX: existingCart.x,
+        targetY: existingCart.y,
+        vx: p.facing * 24,
+        vy: 0,
+        ownerIdx: idx,
+        life: 16
       });
     }
-
-    tntCarts.push({
-      x: startX,
-      y: surfaceY - 16,
-      vx: p.facing * 15.5,
-      vy: 0,
-      ownerIdx: idx,
-      life: 110,
-      fuseTimer: 0,
-      primed: false,
-      wheelAngle: 0
-    });
-    spawnParticles(startX, surfaceY - 10, '#ffa657', 10, 4);
   }
 }
 
@@ -662,8 +845,8 @@ function performSecondaryAction(idx, fromRemote = false) {
   const p = players[idx];
   if (!p || p.secondaryCooldown > 0) return;
 
-  if (!fromRemote && gameMode === 'pvp' && idx === 0 && matchChannel) {
-    matchChannel.postMessage({ type: 'ACTION', kind: 'secondary' });
+  if (!fromRemote && gameMode === 'pvp' && idx === 0) {
+    sendNetMessage({ type: 'ACTION', kind: 'secondary' });
   }
 
   const cx = p.x + p.w / 2;
@@ -683,9 +866,9 @@ function performSecondaryAction(idx, fromRemote = false) {
         ownerIdx: idx
       });
       spawnParticles(placeX, placeY - 16, '#8957e5', 10, 3);
-    } else if (nearAnchor.charges < 4) {
-      nearAnchor.charges++;
-      spawnParticles(nearAnchor.x, nearAnchor.y, '#f0883e', 14, 4);
+    } else if (nearAnchor.charges === 0) {
+      nearAnchor.charges = 1;
+      spawnParticles(nearAnchor.x, nearAnchor.y, '#ffd33d', 16, 4.5);
     } else {
       const aIdx = anchors.indexOf(nearAnchor);
       if (aIdx !== -1) anchors.splice(aIdx, 1);
@@ -743,7 +926,7 @@ function handleKO(victimIdx) {
     saveRanking(players[0].name, p1Kills, p1Deaths);
     const winnerText = killer.name + ' 승리!';
     setTimeout(() => {
-      alert(winnerText + ' (K/D 랭킹에 전적이 반영되었습니다)');
+      alert(winnerText + ' (K/D 랭킹에 즉시 반영되었습니다)');
       exitToMenu();
     }, 150);
     return;
@@ -778,27 +961,28 @@ function updateBot(bot, target) {
     }
   }
 
-  const reactInterval = botDifficulty === 'easy' ? 42 : botDifficulty === 'normal' ? 24 : 11;
+  const reactInterval = botDifficulty === 'easy' ? 42 : botDifficulty === 'normal' ? 24 : 10;
   if (bot.botTimer % reactInterval !== 0) return;
 
   if (botDifficulty === 'hard') {
     if (dist < 115) {
-      selectWeapon(1, 2);
-      const myAnchor = anchors.find(a => Math.hypot(a.x - bot.x, a.y - bot.y) < 110);
-      if (myAnchor && myAnchor.charges >= 1) {
-        while (myAnchor.charges < 4) myAnchor.charges++;
-        performSecondaryAction(1);
-      } else if (crystals.length > 0) {
-        performPrimaryAttack(1);
-      } else if (Math.random() < 0.5) {
+      const useCart = Math.random() < 0.45;
+      if (useCart) {
+        selectWeapon(1, 3);
         performPrimaryAttack(1);
       } else {
-        performSecondaryAction(1);
-        performSecondaryAction(1);
+        selectWeapon(1, 2);
+        const myAnchor = anchors.find(a => Math.hypot(a.x - bot.x, a.y - bot.y) < 110);
+        if (myAnchor && myAnchor.charges >= 1) {
+          performSecondaryAction(1);
+        } else if (crystals.length > 0) {
+          performPrimaryAttack(1);
+        } else if (Math.random() < 0.5) {
+          performPrimaryAttack(1);
+        } else {
+          performSecondaryAction(1);
+        }
       }
-    } else if (Math.abs(dy) < 55 && dist < 340) {
-      selectWeapon(1, 3);
-      performPrimaryAttack(1);
     } else {
       selectWeapon(1, 1);
       if (bot.onGround) {
@@ -810,10 +994,7 @@ function updateBot(bot, target) {
     }
   } else {
     if (dist < 85) {
-      selectWeapon(1, Math.random() < 0.5 ? 1 : 2);
-      performPrimaryAttack(1);
-    } else if (dist < 280 && Math.abs(dy) < 50 && Math.random() < 0.4) {
-      selectWeapon(1, 3);
+      selectWeapon(1, Math.random() < 0.5 ? 1 : 3);
       performPrimaryAttack(1);
     }
   }
@@ -883,12 +1064,13 @@ function update() {
     }
   });
 
-  if (gameMode === 'pvp' && matchChannel && players[0]) {
+  if (gameMode === 'pvp' && players[0]) {
     const me = players[0];
-    matchChannel.postMessage({
+    sendNetMessage({
       type: 'SYNC',
       x: me.x, y: me.y, vx: me.vx, vy: me.vy,
-      facing: me.facing, weapon: me.weapon
+      facing: me.facing, weapon: me.weapon,
+      damage: me.damage, stocks: me.stocks
     });
   }
 
@@ -912,39 +1094,25 @@ function update() {
     }
   }
 
-  for (let i = tntCarts.length - 1; i >= 0; i--) {
-    const cart = tntCarts[i];
-    cart.x += cart.vx;
-    cart.wheelAngle += cart.vx * 0.08;
-    cart.life--;
+  for (let i = flameArrows.length - 1; i >= 0; i--) {
+    const arr = flameArrows[i];
+    arr.x += arr.vx;
+    arr.life--;
+    spawnParticles(arr.x, arr.y, '#ffa657', 2, 1.5);
 
-    const surf = getSurfaceY(cart.x, cart.y + 16);
-    if (cart.x >= STAGE.x && cart.x <= STAGE.x + STAGE.w) {
-      cart.y = surf - 16;
-    } else {
-      cart.vy += GRAVITY * 0.85;
-      cart.y += cart.vy;
-    }
-
-    if (Math.random() < 0.7) {
-      rails.push({ x: cart.x, y: cart.y + 13, life: 32 });
-    }
-    spawnParticles(cart.x - Math.sign(cart.vx) * 14, cart.y - 6, '#ff7b72', 1, 2);
-
-    const enemy = players[1 - cart.ownerIdx];
-    const hitEnemy = enemy && Math.hypot((enemy.x + enemy.w / 2) - cart.x, (enemy.y + enemy.h / 2) - cart.y) < 44;
-    const hitCrystal = crystals.some(c => Math.hypot(c.x - cart.x, c.y - cart.y) < 38);
-    const hitAnchor = anchors.some(a => Math.hypot(a.x - cart.x, a.y - cart.y) < 38);
-
-    if (hitEnemy || hitCrystal || hitAnchor || cart.life <= 0 || cart.y > canvas.height + 80) {
-      triggerExplosion(cart.x, cart.y, 138, 30, 14.5, cart.ownerIdx, false);
-      tntCarts.splice(i, 1);
+    const hitCartIdx = tntCarts.findIndex(c => Math.hypot(c.x - arr.x, c.y - arr.y) < 28);
+    if (hitCartIdx !== -1) {
+      const cart = tntCarts.splice(hitCartIdx, 1)[0];
+      triggerExplosion(cart.x, cart.y, 150, 35, 16.0, arr.ownerIdx, true);
+      flameArrows.splice(i, 1);
+    } else if (arr.life <= 0) {
+      flameArrows.splice(i, 1);
     }
   }
 
-  for (let i = rails.length - 1; i >= 0; i--) {
-    rails[i].life--;
-    if (rails[i].life <= 0) rails.splice(i, 1);
+  for (let i = tntCarts.length - 1; i >= 0; i--) {
+    tntCarts[i].life--;
+    if (tntCarts[i].life <= 0) tntCarts.splice(i, 1);
   }
 
   for (let i = swingAnimations.length - 1; i >= 0; i--) {
@@ -1013,24 +1181,25 @@ function drawRespawnAnchor(a) {
   ctx.fillRect(-10, -14, 20, 8);
 
   if (a.charges > 0) {
-    const glowHeight = a.charges * 6;
-    const grad = ctx.createLinearGradient(0, 16, 0, 16 - glowHeight);
-    grad.addColorStop(0, '#f0883e');
-    grad.addColorStop(1, '#ffd33d');
-    ctx.fillStyle = grad;
-    ctx.fillRect(-13, 15 - glowHeight, 26, glowHeight);
+    ctx.fillStyle = '#ffd33d';
+    ctx.fillRect(-13, -6, 26, 21);
   }
 
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(a.charges + '/4', 0, -20);
+  ctx.fillText(a.charges > 0 ? '충전완료' : '0/1', 0, -20);
   ctx.restore();
 }
 
 function drawTntCart(cart) {
   ctx.save();
   ctx.translate(cart.x, cart.y);
+
+  ctx.fillStyle = '#8b949e';
+  ctx.fillRect(-18, 12, 36, 3);
+  ctx.fillStyle = '#f0883e';
+  ctx.fillRect(-12, 13, 24, 1.5);
 
   ctx.fillStyle = '#d73a49';
   ctx.fillRect(-13, -14, 26, 14);
@@ -1046,23 +1215,6 @@ function drawTntCart(cart) {
   ctx.strokeStyle = '#30363d';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(-16, -2, 32, 13);
-
-  [-9, 9].forEach(wx => {
-    ctx.save();
-    ctx.translate(wx, 12);
-    ctx.rotate(cart.wheelAngle);
-    ctx.fillStyle = '#21262d';
-    ctx.beginPath();
-    ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#8b949e';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(-4, 0);
-    ctx.lineTo(4, 0);
-    ctx.stroke();
-    ctx.restore();
-  });
 
   ctx.restore();
 }
@@ -1085,19 +1237,24 @@ function draw() {
     ctx.fillRect(px, py, pw, 3);
   });
 
-  rails.forEach(r => {
-    ctx.save();
-    ctx.globalAlpha = Math.min(1, r.life / 25);
-    ctx.fillStyle = '#8b949e';
-    ctx.fillRect(r.x - 10, r.y, 20, 3);
-    ctx.fillStyle = '#f0883e';
-    ctx.fillRect(r.x - 6, r.y + 1, 12, 1.5);
-    ctx.restore();
-  });
-
   crystals.forEach(drawEndCrystal);
   anchors.forEach(drawRespawnAnchor);
   tntCarts.forEach(drawTntCart);
+
+  flameArrows.forEach(arr => {
+    ctx.save();
+    ctx.strokeStyle = '#ffa657';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(arr.x - Math.sign(arr.vx) * 14, arr.y);
+    ctx.lineTo(arr.x + Math.sign(arr.vx) * 8, arr.y);
+    ctx.stroke();
+    ctx.fillStyle = '#ff7b72';
+    ctx.beginPath();
+    ctx.arc(arr.x + Math.sign(arr.vx) * 8, arr.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
 
   windCharges.forEach(wc => {
     ctx.fillStyle = '#a5d6ff';
@@ -1121,15 +1278,6 @@ function draw() {
       const startAng = anim.facing === 1 ? -1.2 : Math.PI + 1.2;
       const endAng = startAng + anim.facing * (progress * 2.4);
       ctx.arc(0, 0, 48, Math.min(startAng, endAng), Math.max(startAng, endAng));
-      ctx.stroke();
-      ctx.restore();
-    } else if (anim.type === 'rail_cart_deploy') {
-      ctx.save();
-      ctx.globalAlpha = 1 - progress;
-      ctx.strokeStyle = '#ffa657';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(anim.x, anim.y - 10, 12 + progress * 26, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
@@ -1179,6 +1327,7 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
+renderRankings();
 loop();
 </script>
 </body>
