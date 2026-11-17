@@ -45,7 +45,7 @@
     border: 1px solid #30363d;
     border-radius: 12px;
     padding: 22px 28px;
-    width: 470px;
+    width: 480px;
     max-width: 94vw;
     box-shadow: 0 12px 32px rgba(0,0,0,0.65);
   }
@@ -193,8 +193,8 @@
     z-index: 10;
   }
   .slot {
-    width: 84px;
-    height: 70px;
+    width: 104px;
+    height: 74px;
     background: #0d1117;
     border: 2px solid #30363d;
     border-radius: 8px;
@@ -205,6 +205,7 @@
     font-size: 0.76rem;
     color: #8b949e;
     position: relative;
+    text-align: center;
   }
   .slot.active {
     border-color: #f0883e;
@@ -221,7 +222,7 @@
     font-weight: bold;
   }
   .slot-sub {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     color: #a371f7;
     margin-top: 2px;
   }
@@ -262,7 +263,7 @@
 
 <div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">철퇴 · 엔드 크리스탈 & 1충전 정박기 · TNT 카트 화살 기폭</div>
+  <div class="subtitle">창/철퇴 · 겉날개/철퇴 · 엔드 크리스탈 & 정박기 · TNT 카트</div>
 
   <div class="panel">
     <div class="user-header">
@@ -331,16 +332,21 @@
 <div id="hotbar">
   <div class="slot active" id="slot-1">
     <span class="slot-key">1</span>
-    <strong>철퇴</strong>
-    <span class="slot-sub">우클릭: 돌풍구</span>
+    <strong>창 / 철퇴</strong>
+    <span class="slot-sub">우클릭: 돌진 · 좌: 찌르기/철퇴</span>
   </div>
   <div class="slot" id="slot-2">
     <span class="slot-key">2</span>
-    <strong>엔드 크리스탈</strong>
-    <span class="slot-sub">우클릭: 정박기</span>
+    <strong>겉날개 / 철퇴</strong>
+    <span class="slot-sub">우클릭: 로켓활강 · 좌: 해제가격</span>
   </div>
   <div class="slot" id="slot-3">
     <span class="slot-key">3</span>
+    <strong>엔드 크리스탈</strong>
+    <span class="slot-sub">우클릭: 1충전 정박기</span>
+  </div>
+  <div class="slot" id="slot-4">
+    <span class="slot-key">4</span>
     <strong>TNT 카트</strong>
     <span class="slot-sub">좌클릭: 화살기폭</span>
   </div>
@@ -575,6 +581,9 @@ function handleNetData(msg) {
       opp.weapon = msg.weapon;
       opp.damage = msg.damage;
       opp.stocks = msg.stocks;
+      opp.gliding = msg.gliding;
+      opp.glideAngle = msg.glideAngle;
+      opp.spearCharge = msg.spearCharge;
       updateHUD();
     }
   } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
@@ -673,7 +682,6 @@ let crystals = [];
 let anchors = [];
 let tntCarts = [];
 let flameArrows = [];
-let windCharges = [];
 let particles = [];
 let swingAnimations = [];
 let matchEnded = false;
@@ -699,6 +707,11 @@ function createPlayer(id, name, x, color, isBot = false) {
     attackCooldown: 0,
     secondaryCooldown: 0,
     invuln: 0,
+    gliding: false,
+    glideAngle: 0,
+    diveSpeed: 0,
+    spearCharge: 0,
+    spearThrustTimer: 0,
     isBot,
     botTimer: 0
   };
@@ -709,7 +722,6 @@ function resetEntities() {
   anchors = [];
   tntCarts = [];
   flameArrows = [];
-  windCharges = [];
   particles = [];
   swingAnimations = [];
 }
@@ -770,9 +782,13 @@ document.getElementById('btn-bot').onclick = () => {
 function selectWeapon(playerIdx, slot) {
   const p = players[playerIdx];
   if (!p) return;
+  if (p.weapon !== slot && p.gliding) {
+    p.gliding = false;
+    p.fallStartY = p.y - Math.max(40, p.diveSpeed * 12);
+  }
   p.weapon = slot;
   if (playerIdx === 0) {
-    [1, 2, 3].forEach(i => {
+    [1, 2, 3, 4].forEach(i => {
       document.getElementById('slot-' + i).classList.toggle('active', i === slot);
     });
   }
@@ -785,6 +801,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit1') selectWeapon(0, 1);
   if (e.code === 'Digit2') selectWeapon(0, 2);
   if (e.code === 'Digit3') selectWeapon(0, 3);
+  if (e.code === 'Digit4') selectWeapon(0, 4);
   if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') jumpPlayer(0);
   if (e.code === 'KeyJ') performPrimaryAttack(0);
   if (e.code === 'KeyK') performSecondaryAction(0);
@@ -800,7 +817,13 @@ canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 function jumpPlayer(idx) {
   const p = players[idx];
-  if (!p || p.jumps <= 0) return;
+  if (!p) return;
+  if (p.gliding) {
+    p.gliding = false;
+    p.fallStartY = p.y - Math.max(30, p.diveSpeed * 10);
+    return;
+  }
+  if (p.jumps <= 0) return;
   p.vy = -12.8;
   p.onGround = false;
   p.jumps--;
@@ -847,9 +870,55 @@ function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, low
       target.vx += Math.cos(angle) * kbScale;
       target.vy += Math.sin(angle) * kbScale - 4.8 * mult;
       target.onGround = false;
+      target.gliding = false;
     }
   });
   updateHUD();
+}
+
+function executeMaceSmash(idx, speedBonus, isAerialBurst) {
+  const p = players[idx];
+  const cx = p.x + p.w / 2;
+  const cy = p.y + p.h / 2;
+  const fallDist = (!p.onGround && p.fallStartY !== null && p.y > p.fallStartY) ? (p.y - p.fallStartY) : 0;
+  const effectiveFall = Math.max(fallDist, speedBonus * 14);
+  const isSmash = effectiveFall > 36 || isAerialBurst;
+
+  swingAnimations.push({
+    ownerIdx: idx,
+    type: 'mace',
+    facing: p.facing,
+    isSmash,
+    timer: 14,
+    maxTimer: 14
+  });
+
+  const target = players[1 - idx];
+  if (!target) return false;
+  const hitX = cx + p.facing * 44;
+  const dist = Math.hypot((target.x + target.w / 2) - hitX, (target.y + target.h / 2) - cy);
+  if (dist < 74) {
+    const bonus = isSmash ? Math.min(54, Math.floor(effectiveFall * 0.24)) : 0;
+    const totalDmg = 14 + bonus;
+    target.damage += totalDmg;
+    const kb = (1 + target.damage / 78) * (isSmash ? 14.5 + bonus * 0.26 : 7.5);
+    target.vx += p.facing * kb;
+    target.vy -= isSmash ? (10.5 + bonus * 0.18) : 4.5;
+    target.onGround = false;
+    target.gliding = false;
+
+    if (isSmash) {
+      p.vy = -12.2;
+      p.fallStartY = p.y;
+      p.jumps = Math.max(p.jumps, 1);
+      spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#79c0ff', 26, 8);
+    } else {
+      spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#c9d1d9', 10, 4);
+    }
+    updateHUD();
+    return true;
+  }
+  return false;
 }
 
 function performPrimaryAttack(idx, fromRemote = false) {
@@ -864,44 +933,60 @@ function performPrimaryAttack(idx, fromRemote = false) {
   const cy = p.y + p.h / 2;
 
   if (p.weapon === 1) {
-    p.attackCooldown = 18;
-    const fallDist = (!p.onGround && p.fallStartY !== null && p.y > p.fallStartY) ? (p.y - p.fallStartY) : 0;
-    const isSmash = fallDist > 42;
+    p.attackCooldown = 16;
+    const currentSpeed = Math.hypot(p.vx, p.vy);
+    const isFalling = !p.onGround && p.vy > 1.5;
 
-    swingAnimations.push({
-      ownerIdx: idx,
-      type: 'mace',
-      facing: p.facing,
-      isSmash,
-      timer: 14,
-      maxTimer: 14
-    });
+    if (isFalling || p.spearCharge > 0) {
+      const speedMomentum = Math.max(currentSpeed, p.spearCharge);
+      p.spearCharge = 0;
+      executeMaceSmash(idx, speedMomentum, speedMomentum > 11);
+    } else {
+      p.spearThrustTimer = 10;
+      swingAnimations.push({
+        ownerIdx: idx,
+        type: 'spear',
+        facing: p.facing,
+        isCharged: currentSpeed > 8,
+        timer: 10,
+        maxTimer: 10
+      });
 
-    const target = players[1 - idx];
-    if (target) {
-      const hitX = cx + p.facing * 42;
-      const dist = Math.hypot((target.x + target.w / 2) - hitX, (target.y + target.h / 2) - cy);
-      if (dist < 68) {
-        const bonus = isSmash ? Math.min(48, Math.floor(fallDist * 0.22)) : 0;
-        const totalDmg = 14 + bonus;
-        target.damage += totalDmg;
-        const kb = (1 + target.damage / 80) * (isSmash ? 14 + bonus * 0.25 : 7.5);
-        target.vx += p.facing * kb;
-        target.vy -= isSmash ? (10 + bonus * 0.18) : 4.5;
-        target.onGround = false;
-
-        if (isSmash) {
-          p.vy = -11.5;
-          p.fallStartY = p.y;
-          p.jumps = Math.max(p.jumps, 1);
-          spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#79c0ff', 22, 7);
-        } else {
-          spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#c9d1d9', 10, 4);
+      const target = players[1 - idx];
+      if (target) {
+        const dx = (target.x + target.w / 2) - cx;
+        const dy = (target.y + target.h / 2) - cy;
+        const inFront = Math.sign(dx) === p.facing || Math.abs(dx) < 24;
+        const reach = 105;
+        if (inFront && Math.abs(dx) <= reach && Math.abs(dy) <= 46) {
+          const speedScale = Math.min(28, Math.floor(currentSpeed * 1.35));
+          const dmg = 11 + speedScale;
+          target.damage += dmg;
+          const kb = (1 + target.damage / 85) * (8.5 + speedScale * 0.28);
+          target.vx += p.facing * kb;
+          target.vy -= 5.2 + speedScale * 0.12;
+          target.onGround = false;
+          spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#f8e3a1', 16, 5.5);
+          updateHUD();
         }
-        updateHUD();
       }
     }
   } else if (p.weapon === 2) {
+    p.attackCooldown = 16;
+    if (p.gliding) {
+      const glideVelocity = Math.hypot(p.vx, p.vy);
+      p.gliding = false;
+      p.fallStartY = p.y - glideVelocity * 15;
+      const hit = executeMaceSmash(idx, glideVelocity * 1.15, true);
+      if (hit) {
+        p.vy = -13.5;
+        p.jumps = 2;
+      }
+    } else {
+      const fallSpeed = !p.onGround && p.vy > 0 ? p.vy : 0;
+      executeMaceSmash(idx, fallSpeed, fallSpeed > 8);
+    }
+  } else if (p.weapon === 3) {
     p.attackCooldown = 10;
     const hitIdx = crystals.findIndex(c => Math.hypot(c.x - (cx + p.facing * 36), c.y - cy) < 72);
     if (hitIdx !== -1) {
@@ -913,7 +998,7 @@ function performPrimaryAttack(idx, fromRemote = false) {
       crystals.push({ x: placeX, y: placeY - 18, ownerIdx: idx, pulse: 0 });
       spawnParticles(placeX, placeY - 18, '#d2a8ff', 10, 3);
     }
-  } else if (p.weapon === 3) {
+  } else if (p.weapon === 4) {
     p.attackCooldown = 14;
     const placeX = cx + p.facing * 46;
     const placeY = getSurfaceY(placeX, p.y + p.h);
@@ -951,7 +1036,31 @@ function performSecondaryAction(idx, fromRemote = false) {
   const cx = p.x + p.w / 2;
   const cy = p.y + p.h / 2;
 
-  if (p.weapon === 2) {
+  if (p.weapon === 1) {
+    p.secondaryCooldown = 24;
+    p.vx = p.facing * 18.5;
+    p.vy = -8.2;
+    p.onGround = false;
+    p.fallStartY = p.y - 45;
+    p.spearCharge = 18;
+    p.spearThrustTimer = 14;
+    spawnParticles(cx, cy, '#ffd33d', 16, 5);
+  } else if (p.weapon === 2) {
+    p.secondaryCooldown = 22;
+    if (!p.gliding) {
+      p.gliding = true;
+      p.onGround = false;
+      p.vy = -14.2;
+      p.vx = p.facing * 13.5;
+      p.glideAngle = -0.35;
+      spawnParticles(cx, p.y + p.h, '#ffa657', 20, 6);
+    } else {
+      p.vy = -12.5;
+      p.vx = p.facing * 15.5;
+      p.glideAngle = -0.25;
+      spawnParticles(cx, cy, '#ff7b72', 18, 6);
+    }
+  } else if (p.weapon === 3) {
     p.secondaryCooldown = 12;
     const nearAnchor = anchors.find(a => Math.hypot(a.x - (cx + p.facing * 42), a.y - cy) < 76);
 
@@ -973,16 +1082,19 @@ function performSecondaryAction(idx, fromRemote = false) {
       if (aIdx !== -1) anchors.splice(aIdx, 1);
       triggerExplosion(nearAnchor.x, nearAnchor.y, 155, 36, 16.5, idx, true);
     }
-  } else {
-    p.secondaryCooldown = 26;
-    windCharges.push({
-      x: cx,
-      y: cy + 6,
-      vx: p.facing * 6,
-      vy: 14,
-      ownerIdx: idx,
-      life: 25
-    });
+  } else if (p.weapon === 4) {
+    p.secondaryCooldown = 20;
+    const existingCart = tntCarts.find(c => c.ownerIdx === idx);
+    if (existingCart) {
+      flameArrows.push({
+        x: cx + p.facing * 18,
+        y: cy - 4,
+        vx: p.facing * 24,
+        vy: 0,
+        ownerIdx: idx,
+        life: 16
+      });
+    }
   }
 }
 
@@ -1011,6 +1123,8 @@ function handleKO(victimIdx) {
   const victim = players[victimIdx];
   const killer = players[1 - victimIdx];
   victim.stocks--;
+  victim.gliding = false;
+  victim.spearCharge = 0;
   spawnParticles(
     Math.max(80, Math.min(canvas.width - 80, victim.x)),
     Math.max(80, Math.min(canvas.height - 80, victim.y)),
@@ -1055,7 +1169,7 @@ function updateBot(bot, target) {
     if (bot.vy > 0 && bot.jumps > 0) jumpPlayer(1);
   } else {
     bot.facing = dx >= 0 ? 1 : -1;
-    if (dist > 65) {
+    if (dist > 65 && !bot.gliding) {
       bot.vx += bot.facing * (botDifficulty === 'hard' ? 0.65 : 0.42);
     }
   }
@@ -1064,36 +1178,43 @@ function updateBot(bot, target) {
   if (bot.botTimer % reactInterval !== 0) return;
 
   if (botDifficulty === 'hard') {
-    if (dist < 115) {
-      const useCart = Math.random() < 0.45;
-      if (useCart) {
-        selectWeapon(1, 3);
-        performPrimaryAttack(1);
+    if (bot.gliding && dist < 95) {
+      performPrimaryAttack(1);
+      return;
+    }
+    if (dist > 170) {
+      selectWeapon(1, 2);
+      performSecondaryAction(1);
+    } else if (dist > 95) {
+      selectWeapon(1, 1);
+      if (bot.onGround) {
+        performSecondaryAction(1);
       } else {
-        selectWeapon(1, 2);
+        performPrimaryAttack(1);
+      }
+    } else {
+      const roll = Math.random();
+      if (roll < 0.35) {
+        selectWeapon(1, 1);
+        performPrimaryAttack(1);
+      } else if (roll < 0.7) {
+        selectWeapon(1, 3);
         const myAnchor = anchors.find(a => Math.hypot(a.x - bot.x, a.y - bot.y) < 110);
         if (myAnchor && myAnchor.charges >= 1) {
           performSecondaryAction(1);
         } else if (crystals.length > 0) {
           performPrimaryAttack(1);
-        } else if (Math.random() < 0.5) {
-          performPrimaryAttack(1);
         } else {
           performSecondaryAction(1);
         }
-      }
-    } else {
-      selectWeapon(1, 1);
-      if (bot.onGround) {
-        jumpPlayer(1);
-        performSecondaryAction(1);
-      } else if (bot.vy > 2 && dist < 90) {
+      } else {
+        selectWeapon(1, 4);
         performPrimaryAttack(1);
       }
     }
   } else {
-    if (dist < 85) {
-      selectWeapon(1, Math.random() < 0.5 ? 1 : 3);
+    if (dist < 90) {
+      selectWeapon(1, Math.random() < 0.5 ? 1 : 4);
       performPrimaryAttack(1);
     }
   }
@@ -1103,13 +1224,25 @@ function update() {
   if (!gameMode || matchEnded) return;
 
   const p1 = players[0];
-  if (keys['KeyA'] || keys['ArrowLeft']) {
-    p1.vx -= 0.72;
+  const moveLeft = keys['KeyA'] || keys['ArrowLeft'];
+  const moveRight = keys['KeyD'] || keys['ArrowRight'];
+  const pitchDown = keys['KeyS'] || keys['ArrowDown'];
+
+  if (moveLeft) {
     p1.facing = -1;
+    if (p1.gliding) {
+      p1.vx -= 0.48;
+    } else {
+      p1.vx -= 0.72;
+    }
   }
-  if (keys['KeyD'] || keys['ArrowRight']) {
-    p1.vx += 0.72;
+  if (moveRight) {
     p1.facing = 1;
+    if (p1.gliding) {
+      p1.vx += 0.48;
+    } else {
+      p1.vx += 0.72;
+    }
   }
 
   if (gameMode === 'bot') {
@@ -1120,14 +1253,36 @@ function update() {
     if (p.attackCooldown > 0) p.attackCooldown--;
     if (p.secondaryCooldown > 0) p.secondaryCooldown--;
     if (p.invuln > 0) p.invuln--;
+    if (p.spearThrustTimer > 0) p.spearThrustTimer--;
+    if (p.spearCharge > 0) p.spearCharge = Math.max(0, p.spearCharge - 0.35);
 
     const prevY = p.y;
-    p.vy += GRAVITY;
+
+    if (p.gliding) {
+      const diveInput = (idx === 0 && pitchDown) || (idx === 1 && gameMode === 'bot' && players[0].y > p.y);
+      if (diveInput) {
+        p.vy += 0.75;
+        p.vx += p.facing * 0.52;
+      } else {
+        p.vy += 0.16;
+        p.vx += p.facing * 0.25;
+      }
+      p.vx = Math.max(-19, Math.min(19, p.vx * 0.985));
+      p.vy = Math.max(-16, Math.min(18, p.vy * 0.985));
+      p.diveSpeed = Math.hypot(p.vx, p.vy);
+      p.glideAngle = Math.atan2(p.vy, Math.abs(p.vx) * p.facing);
+      if (Math.random() < 0.6) {
+        spawnParticles(p.x + p.w / 2, p.y + p.h / 2, '#a5d6ff', 1, 1.2);
+      }
+    } else {
+      p.vy += GRAVITY;
+      p.vx *= p.onGround ? 0.80 : 0.93;
+    }
+
     p.x += p.vx;
     p.y += p.vy;
-    p.vx *= p.onGround ? 0.80 : 0.92;
 
-    if (!p.onGround && p.vy > 0 && p.fallStartY === null) {
+    if (!p.gliding && !p.onGround && p.vy > 0 && p.fallStartY === null) {
       p.fallStartY = p.y;
     }
 
@@ -1138,11 +1293,12 @@ function update() {
       p.y = STAGE.y - p.h;
       p.vy = 0;
       p.onGround = true;
+      p.gliding = false;
       p.jumps = 2;
       p.fallStartY = null;
     }
 
-    if (!keys['KeyS'] && !keys['ArrowDown']) {
+    if (!pitchDown && !p.gliding) {
       for (const plat of PLATFORMS) {
         const px = canvas.width * plat.rx;
         const py = canvas.height * plat.ry;
@@ -1158,7 +1314,7 @@ function update() {
       }
     }
 
-    if (p.y > canvas.height + 140 || p.x < -180 || p.x > canvas.width + 180 || p.y < -320) {
+    if (p.y > canvas.height + 140 || p.x < -180 || p.x > canvas.width + 180 || p.y < -360) {
       handleKO(idx);
     }
   });
@@ -1169,28 +1325,10 @@ function update() {
       type: 'SYNC',
       x: me.x, y: me.y, vx: me.vx, vy: me.vy,
       facing: me.facing, weapon: me.weapon,
-      damage: me.damage, stocks: me.stocks
+      damage: me.damage, stocks: me.stocks,
+      gliding: me.gliding, glideAngle: me.glideAngle,
+      spearCharge: me.spearCharge
     });
-  }
-
-  for (let i = windCharges.length - 1; i >= 0; i--) {
-    const wc = windCharges[i];
-    wc.x += wc.vx;
-    wc.y += wc.vy;
-    wc.life--;
-    spawnParticles(wc.x, wc.y, '#e6edf3', 1, 1.5);
-    const surf = getSurfaceY(wc.x, wc.y);
-    if (wc.y >= surf || wc.life <= 0) {
-      const owner = players[wc.ownerIdx];
-      if (owner && Math.hypot((owner.x + owner.w / 2) - wc.x, (owner.y + owner.h) - wc.y) < 110) {
-        owner.vy = -17.5;
-        owner.onGround = false;
-        owner.fallStartY = owner.y - 60;
-        owner.jumps = 2;
-      }
-      spawnParticles(wc.x, wc.y, '#a5d6ff', 16, 6);
-      windCharges.splice(i, 1);
-    }
   }
 
   for (let i = flameArrows.length - 1; i >= 0; i--) {
@@ -1241,6 +1379,22 @@ function drawMaceIcon(x, y, angle = 0, scale = 1) {
   ctx.strokeStyle = '#79c0ff';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(-10, -28, 20, 14);
+  ctx.restore();
+}
+
+function drawSpearIcon(x, y, facing, thrusting = false) {
+  ctx.save();
+  ctx.translate(x + (thrusting ? facing * 18 : 0), y);
+  ctx.scale(facing, 1);
+  ctx.fillStyle = '#8b949e';
+  ctx.fillRect(-16, -2, 42, 4);
+  ctx.fillStyle = '#79c0ff';
+  ctx.beginPath();
+  ctx.moveTo(26, -6);
+  ctx.lineTo(40, 0);
+  ctx.lineTo(26, 6);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1355,20 +1509,14 @@ function draw() {
     ctx.restore();
   });
 
-  windCharges.forEach(wc => {
-    ctx.fillStyle = '#a5d6ff';
-    ctx.beginPath();
-    ctx.arc(wc.x, wc.y, 8, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
   swingAnimations.forEach(anim => {
     const progress = 1 - (anim.timer / anim.maxTimer);
+    const owner = players[anim.ownerIdx];
+    if (!owner) return;
+    const ox = owner.x + owner.w / 2;
+    const oy = owner.y + owner.h / 2;
+
     if (anim.type === 'mace') {
-      const owner = players[anim.ownerIdx];
-      if (!owner) return;
-      const ox = owner.x + owner.w / 2;
-      const oy = owner.y + owner.h / 2;
       ctx.save();
       ctx.translate(ox, oy);
       ctx.strokeStyle = anim.isSmash ? '#79c0ff' : '#c9d1d9';
@@ -1379,12 +1527,55 @@ function draw() {
       ctx.arc(0, 0, 48, Math.min(startAng, endAng), Math.max(startAng, endAng));
       ctx.stroke();
       ctx.restore();
+    } else if (anim.type === 'spear') {
+      ctx.save();
+      ctx.strokeStyle = anim.isCharged ? '#ffd33d' : '#79c0ff';
+      ctx.lineWidth = anim.isCharged ? 5 : 3;
+      ctx.beginPath();
+      ctx.moveTo(ox, oy);
+      ctx.lineTo(ox + anim.facing * (55 + progress * 48), oy);
+      ctx.stroke();
+      ctx.restore();
     }
   });
 
   players.forEach(p => {
     if (p.invuln > 0 && Math.floor(p.invuln / 5) % 2 === 0) return;
     ctx.save();
+
+    const cx = p.x + p.w / 2;
+    const cy = p.y + p.h / 2;
+
+    if (p.gliding) {
+      ctx.translate(cx, cy);
+      ctx.rotate(p.facing === 1 ? 0.55 : -0.55);
+      ctx.fillStyle = '#8b949e';
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(-p.facing * 26, -24);
+      ctx.lineTo(-p.facing * 18, 12);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2 + 12, p.w, p.h - 14);
+      ctx.fillStyle = '#f0c6a8';
+      ctx.fillRect(-p.w / 2 + 5, -p.h / 2, p.w - 10, 14);
+      drawMaceIcon(p.facing * 18, 4, p.facing * 0.6, 0.85);
+      ctx.restore();
+
+      ctx.fillStyle = '#a5d6ff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name + ' [활강]', cx, p.y - 10);
+      return;
+    }
+
+    if (p.weapon === 2) {
+      ctx.fillStyle = '#6e7681';
+      ctx.fillRect(p.facing === 1 ? p.x - 5 : p.x + p.w - 1, p.y + 18, 6, 26);
+    }
+
     ctx.fillStyle = p.color;
     ctx.fillRect(p.x, p.y + 16, p.w, p.h - 16);
     ctx.fillStyle = '#f0c6a8';
@@ -1396,11 +1587,17 @@ function draw() {
     const handX = p.facing === 1 ? p.x + p.w + 4 : p.x - 4;
     const handY = p.y + 28;
     if (p.weapon === 1) {
-      drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
+      if (!p.onGround && p.vy > 1.5) {
+        drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
+      } else {
+        drawSpearIcon(handX, handY, p.facing, p.spearThrustTimer > 0);
+      }
     } else if (p.weapon === 2) {
+      drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
+    } else if (p.weapon === 3) {
       ctx.fillStyle = '#d2a8ff';
       ctx.fillRect(handX - 6, handY - 6, 12, 12);
-    } else if (p.weapon === 3) {
+    } else if (p.weapon === 4) {
       ctx.fillStyle = '#d73a49';
       ctx.fillRect(handX - 7, handY - 5, 14, 10);
     }
@@ -1408,7 +1605,7 @@ function draw() {
     ctx.fillStyle = '#e6edf3';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(p.name, p.x + p.w / 2, p.y - 8);
+    ctx.fillText(p.name, cx, p.y - 8);
     ctx.restore();
   });
 
