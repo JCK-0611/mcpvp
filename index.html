@@ -390,7 +390,7 @@
 
 <div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">다이아몬드 갑옷 · 어드민 청금석 네더라이트 · 배지 시스템</div>
+  <div class="subtitle">다이아몬드 갑옷 · K/D 1위 청금석 네더라이트 · 배지 시스템</div>
 
   <div class="panel">
     <div class="user-header">
@@ -519,7 +519,7 @@ const BADGE_DEFS = [
   { id: '킬러', name: '킬러', desc: '누적 500킬 달성' },
   { id: 'God of War', name: 'God of War', desc: '누적 999킬 달성' },
   { id: 'Combat Master', name: 'Combat Master', desc: '4종류 모든 무기로 각각 100킬 이상 달성' },
-  { id: '관리자 주세요', name: '관리자 주세요', desc: '어드민(ImUnstable15)과의 대결에서 승리' }
+  { id: '왕좌 탈환', name: '왕좌 탈환', desc: 'K/D 1위 플레이어와의 대결에서 승리' }
 ];
 
 const ACCOUNTS_KEY = 'mc_smash_accounts_v2';
@@ -533,7 +533,6 @@ function loadAccounts() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return {
-    'ImUnstable15': 'admin1234',
     'CrystalKing': '1234',
     'MaceGod': '1234'
   };
@@ -609,10 +608,20 @@ function loadRankings() {
     if (raw !== null) return JSON.parse(raw);
   } catch (e) {}
   return [
-    { name: 'ImUnstable15', kills: 120, deaths: 12 },
     { name: 'CrystalKing', kills: 24, deaths: 8 },
     { name: 'MaceGod', kills: 19, deaths: 9 }
   ];
+}
+
+function getTopKDPlayerName() {
+  const list = loadRankings();
+  if (!list || list.length === 0) return '';
+  const sorted = [...list].sort((a, b) => {
+    const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
+    const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
+    return kdB - kdA || b.kills - a.kills;
+  });
+  return sorted[0].kills > 0 ? sorted[0].name : '';
 }
 
 function saveRanking(name, killsAdd, deathsAdd) {
@@ -1520,6 +1529,7 @@ function handleKO(victimIdx) {
     matchEnded = true;
     const p1Kills = 3 - players[1].stocks;
     const p1Deaths = 3 - players[0].stocks;
+    const topPlayerBeforeMatch = getTopKDPlayerName();
     saveRanking(players[0].name, p1Kills, p1Deaths);
 
     const p1Won = players[0].stocks > 0;
@@ -1533,8 +1543,8 @@ function handleKO(victimIdx) {
           unlockBadge(myName, 'Sub 50');
         }
       }
-      if (players[1].name === 'ImUnstable15') {
-        unlockBadge(myName, '관리자 주세요');
+      if (topPlayerBeforeMatch && players[1].name === topPlayerBeforeMatch && players[1].name !== myName) {
+        unlockBadge(myName, '왕좌 탈환');
       }
     }
 
@@ -1792,7 +1802,8 @@ function drawSpearIcon(x, y, facing, thrusting = false) {
 }
 
 function drawMinecraftArmorCharacter(p, x, y, w, h) {
-  const isAdmin = p.name === 'ImUnstable15';
+  const topKDName = getTopKDPlayerName();
+  const isTopRanker = Boolean(topKDName) && p.name === topKDName;
 
   if (p.weapon === 2 && !p.gliding) {
     ctx.fillStyle = '#6e7681';
@@ -1809,7 +1820,7 @@ function drawMinecraftArmorCharacter(p, x, y, w, h) {
   ctx.fillRect(x + 1, y + 19, 5, 20);
   ctx.fillRect(x + w - 6, y + 19, 5, 20);
 
-  if (!isAdmin) {
+  if (!isTopRanker) {
     ctx.fillStyle = '#2ccdb0';
     ctx.fillRect(x + 4, y, w - 8, 8);
     ctx.fillRect(x + 4, y + 6, 4, 9);
@@ -2087,10 +2098,11 @@ function draw() {
     const hasBadge = Boolean(p.badge);
     const nameY = hasBadge ? p.y - 22 : p.y - 8;
 
-    ctx.fillStyle = p.name === 'ImUnstable15' ? '#4a90ff' : '#e6edf3';
+    const isTopKD = p.name === getTopKDPlayerName();
+    ctx.fillStyle = isTopKD ? '#4a90ff' : '#e6edf3';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(p.name, cx, nameY);
+    ctx.fillText(isTopKD ? `👑 ${p.name}` : p.name, cx, nameY);
 
     if (hasBadge) {
       ctx.fillStyle = '#ffd33d';
