@@ -30,7 +30,7 @@
     gap: 16px;
   }
   h1 {
-    font-size: 2.5rem;
+    font-size: 2.45rem;
     letter-spacing: -1px;
     text-shadow: 0 4px 16px rgba(0, 210, 255, 0.4);
     color: #58a6ff;
@@ -41,11 +41,11 @@
     margin-bottom: 4px;
   }
   .panel {
-    background: rgba(22, 27, 34, 0.94);
+    background: rgba(22, 27, 34, 0.95);
     border: 1px solid #30363d;
     border-radius: 12px;
-    padding: 22px 28px;
-    width: 480px;
+    padding: 22px 26px;
+    width: 500px;
     max-width: 94vw;
     box-shadow: 0 12px 32px rgba(0,0,0,0.65);
   }
@@ -69,9 +69,50 @@
     border-radius: 8px;
     font-size: 0.95rem;
   }
-  input:focus {
+  input:focus, select:focus {
     outline: none;
     border-color: #58a6ff;
+  }
+  .section-label {
+    font-size: 0.85rem;
+    color: #79c0ff;
+    font-weight: bold;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .weapon-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .weapon-card {
+    background: #0d1117;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .weapon-card:hover {
+    border-color: #58a6ff;
+  }
+  .weapon-card.selected {
+    border-color: #f0883e;
+    background: #1c2128;
+    box-shadow: 0 0 10px rgba(240, 136, 62, 0.35);
+  }
+  .weapon-card strong {
+    display: block;
+    color: #e6edf3;
+    font-size: 0.92rem;
+    margin-bottom: 3px;
+  }
+  .weapon-card span {
+    display: block;
+    color: #8b949e;
+    font-size: 0.74rem;
   }
   .btn-group {
     display: flex;
@@ -92,7 +133,7 @@
   .btn-pvp { background: linear-gradient(135deg, #238636, #2ea043); color: #fff; }
   .btn-bot { background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; }
   .btn-rank { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
-  .btn-sub { background: #30363d; color: #e6edf3; padding: 8px 12px; font-size: 0.85rem; }
+  .btn-sub { background: #30363d; color: #e6edf3; padding: 7px 11px; font-size: 0.83rem; }
   .bot-options {
     display: flex;
     gap: 8px;
@@ -115,15 +156,41 @@
     padding: 9px 14px;
     border-radius: 8px;
     margin-bottom: 14px;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    gap: 8px;
   }
-  #duel-code-box {
+  #duel-code-box, #settings-box {
     display: none;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 8px;
-    padding: 12px;
-    margin-top: 4px;
+    padding: 14px;
+    margin-top: 6px;
+  }
+  .badge-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 210px;
+    overflow-y: auto;
+    margin-top: 6px;
+  }
+  .badge-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #161b22;
+    font-size: 0.82rem;
+  }
+  .badge-item.locked {
+    opacity: 0.48;
+  }
+  .badge-item.equipped {
+    border-color: #f0883e;
+    background: #1f242c;
   }
   table {
     width: 100%;
@@ -179,52 +246,28 @@
     padding: 2px 0;
     color: #c9d1d9;
   }
-  #hotbar {
+  #equipped-bar {
     position: absolute;
     bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
     display: none;
-    gap: 8px;
     background: rgba(22, 27, 34, 0.92);
-    border: 2px solid #484f58;
-    padding: 8px;
+    border: 2px solid #f0883e;
+    padding: 10px 22px;
     border-radius: 10px;
     z-index: 10;
-  }
-  .slot {
-    width: 104px;
-    height: 74px;
-    background: #0d1117;
-    border: 2px solid #30363d;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.76rem;
-    color: #8b949e;
-    position: relative;
     text-align: center;
+    box-shadow: 0 0 14px rgba(240, 136, 62, 0.35);
   }
-  .slot.active {
-    border-color: #f0883e;
-    background: #1c2128;
+  #equipped-bar strong {
     color: #fff;
-    box-shadow: 0 0 12px rgba(240, 136, 62, 0.45);
+    font-size: 0.95rem;
+    display: block;
   }
-  .slot-key {
-    position: absolute;
-    top: 3px;
-    left: 6px;
-    font-size: 0.7rem;
-    color: #58a6ff;
-    font-weight: bold;
-  }
-  .slot-sub {
-    font-size: 0.62rem;
+  #equipped-bar span {
     color: #a371f7;
-    margin-top: 2px;
+    font-size: 0.78rem;
   }
   #exit-btn {
     position: absolute;
@@ -237,6 +280,56 @@
     padding: 8px 14px;
     font-size: 0.85rem;
   }
+  #confirm-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(9, 12, 16, 0.84);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 35;
+  }
+  .modal-card {
+    background: #161b22;
+    border: 1px solid #58a6ff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    width: 400px;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.8);
+  }
+  .modal-card h3 {
+    color: #58a6ff;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+  .modal-card p {
+    color: #e6edf3;
+    margin-bottom: 18px;
+    line-height: 1.5;
+    font-size: 0.96rem;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  #badge-toast {
+    position: absolute;
+    top: 84px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1f6feb, #8957e5);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 40;
+    display: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  }
   canvas {
     display: block;
     background: linear-gradient(180deg, #0b1021 0%, #171e36 65%, #1e1326 100%);
@@ -245,15 +338,49 @@
 </head>
 <body>
 
+<div id="badge-toast"></div>
+
+<div id="confirm-modal">
+  <div class="modal-card">
+    <h3>주 무기 최종 확인</h3>
+    <p id="confirm-weapon-text"></p>
+    <div class="modal-actions">
+      <button class="btn-pvp" id="btn-confirm-yes">예, 시작합니다</button>
+      <button class="btn-rank" id="btn-confirm-no">취소</button>
+    </div>
+  </div>
+</div>
+
 <div id="login-screen" class="screen-overlay">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">닉네임 보호를 위해 로그인 또는 신규 등록 후 입장하세요</div>
+  <div class="subtitle">닉네임 보호 로그인 및 주 무기 선택 후 입장하세요</div>
 
   <div class="panel">
     <div class="input-col">
-      <input type="text" id="login-nickname" placeholder="닉네임 (최대 12자)" maxlength="12">
+      <input type="text" id="login-nickname" placeholder="닉네임 (최대 14자)" maxlength="14">
       <input type="password" id="login-password" placeholder="비밀번호 (4자 이상)" maxlength="20">
     </div>
+
+    <span class="section-label">주 무기 선택 (전투 중 변경 불가 · 설정에서 변경 가능)</span>
+    <div class="weapon-grid" id="login-weapon-grid">
+      <div class="weapon-card selected" data-slot="1">
+        <strong>1. 창 / 철퇴</strong>
+        <span>우: 돌진 · 좌: 찌르기/철퇴</span>
+      </div>
+      <div class="weapon-card" data-slot="2">
+        <strong>2. 겉날개 / 철퇴</strong>
+        <span>우: 로켓활강 · 좌: 해제가격</span>
+      </div>
+      <div class="weapon-card" data-slot="3">
+        <strong>3. 엔드 크리스탈</strong>
+        <span>우: 1충전 정박기</span>
+      </div>
+      <div class="weapon-card" data-slot="4">
+        <strong>4. TNT 카트</strong>
+        <span>좌: 배치 및 화살기폭</span>
+      </div>
+    </div>
+
     <div class="btn-group">
       <button class="btn-bot" id="btn-login">로그인 / 신규 닉네임 등록</button>
     </div>
@@ -263,15 +390,46 @@
 
 <div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">창/철퇴 · 겉날개/철퇴 · 엔드 크리스탈 & 정박기 · TNT 카트</div>
+  <div class="subtitle">다이아몬드 갑옷 · 어드민 청금석 네더라이트 · 배지 시스템</div>
 
   <div class="panel">
     <div class="user-header">
-      <span>접속 계정: <strong id="current-user-label" style="color:#58a6ff;"></strong></span>
-      <button class="btn-sub" id="btn-logout">로그아웃</button>
+      <div>
+        <div>계정: <strong id="current-user-label" style="color:#58a6ff;"></strong></div>
+        <div style="font-size:0.78rem; color:#f0883e; margin-top:2px;">주 무기: <span id="current-weapon-label"></span> | 배지: <span id="current-badge-label">없음</span></div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-sub" id="btn-open-settings">설정</button>
+        <button class="btn-sub" id="btn-logout">로그아웃</button>
+      </div>
     </div>
 
-    <div class="btn-group">
+    <div id="settings-box">
+      <span class="section-label">주 무기 변경</span>
+      <div class="weapon-grid" id="settings-weapon-grid">
+        <div class="weapon-card" data-slot="1">
+          <strong>1. 창 / 철퇴</strong>
+          <span>우: 돌진 · 좌: 찌르기/철퇴</span>
+        </div>
+        <div class="weapon-card" data-slot="2">
+          <strong>2. 겉날개 / 철퇴</strong>
+          <span>우: 로켓활강 · 좌: 해제가격</span>
+        </div>
+        <div class="weapon-card" data-slot="3">
+          <strong>3. 엔드 크리스탈</strong>
+          <span>우: 1충전 정박기</span>
+        </div>
+        <div class="weapon-card" data-slot="4">
+          <strong>4. TNT 카트</strong>
+          <span>좌: 배치 및 화살기폭</span>
+        </div>
+      </div>
+
+      <span class="section-label">배지 장착 (닉네임 아래 표시)</span>
+      <div class="badge-list" id="settings-badge-list"></div>
+    </div>
+
+    <div class="btn-group" style="margin-top:10px;">
       <button class="btn-pvp" id="btn-open-duel">1대1 대결</button>
 
       <div id="duel-code-box">
@@ -329,27 +487,9 @@
   </div>
 </div>
 
-<div id="hotbar">
-  <div class="slot active" id="slot-1">
-    <span class="slot-key">1</span>
-    <strong>창 / 철퇴</strong>
-    <span class="slot-sub">우클릭: 돌진 · 좌: 찌르기/철퇴</span>
-  </div>
-  <div class="slot" id="slot-2">
-    <span class="slot-key">2</span>
-    <strong>겉날개 / 철퇴</strong>
-    <span class="slot-sub">우클릭: 로켓활강 · 좌: 해제가격</span>
-  </div>
-  <div class="slot" id="slot-3">
-    <span class="slot-key">3</span>
-    <strong>엔드 크리스탈</strong>
-    <span class="slot-sub">우클릭: 1충전 정박기</span>
-  </div>
-  <div class="slot" id="slot-4">
-    <span class="slot-key">4</span>
-    <strong>TNT 카트</strong>
-    <span class="slot-sub">좌클릭: 화살기폭</span>
-  </div>
+<div id="equipped-bar">
+  <strong id="equipped-weapon-title">창 / 철퇴</strong>
+  <span id="equipped-weapon-desc">우클릭: 돌진 · 좌클릭: 찌르기/철퇴</span>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -365,8 +505,26 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-const ACCOUNTS_KEY = 'mc_smash_accounts_v1';
+const WEAPON_INFO = {
+  1: { name: '창 / 철퇴', desc: '우클릭: 돌진 · 좌클릭: 찌르기/철퇴 (전투 중 변경 불가)' },
+  2: { name: '겉날개 / 철퇴', desc: '우클릭: 로켓활강 · 좌클릭: 해제가격 (전투 중 변경 불가)' },
+  3: { name: '엔드 크리스탈', desc: '좌클릭: 크리스탈 설치/폭파 · 우클릭: 1충전 정박기' },
+  4: { name: 'TNT 카트', desc: '좌클릭: 카트 설치 후 화살기폭' }
+};
+
+const BADGE_DEFS = [
+  { id: 'Sub 50', name: 'Sub 50', desc: '중급 이상 봇/실제 대전에서 0데스 및 1~49% 피해로 승리' },
+  { id: '무적', name: '무적', desc: '중급 이상 봇/실제 대전에서 0데스 및 0% 피해로 승리' },
+  { id: '???', name: '???', desc: 'TNT 카트로 상대를 처치하는 동시에 자신도 사망' },
+  { id: '킬러', name: '킬러', desc: '누적 500킬 달성' },
+  { id: 'God of War', name: 'God of War', desc: '누적 999킬 달성' },
+  { id: 'Combat Master', name: 'Combat Master', desc: '4종류 모든 무기로 각각 100킬 이상 달성' },
+  { id: '관리자 주세요', name: '관리자 주세요', desc: '어드민(ImUnstable13)과의 대결에서 승리' }
+];
+
+const ACCOUNTS_KEY = 'mc_smash_accounts_v2';
 const STORAGE_KEY = 'mc_smash_kd_rankings_v2';
+const PROFILE_KEY = 'mc_smash_profiles_v1';
 const syncChannel = new BroadcastChannel('mc_smash_realtime_sync');
 
 function loadAccounts() {
@@ -375,14 +533,74 @@ function loadAccounts() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return {
+    'ImUnstable13': 'admin1234',
     'CrystalKing': '1234',
-    'MaceGod': '1234',
-    'CartDrifter': '1234'
+    'MaceGod': '1234'
   };
 }
 
 function saveAccounts(accounts) {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function loadProfiles() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {};
+}
+
+function saveProfiles(profiles) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
+}
+
+function getUserProfile(name) {
+  const profiles = loadProfiles();
+  if (!profiles[name]) {
+    profiles[name] = {
+      primaryWeapon: 1,
+      unlockedBadges: [],
+      equippedBadge: '',
+      totalKills: 0,
+      weaponKills: { 1: 0, 2: 0, 3: 0, 4: 0 }
+    };
+    saveProfiles(profiles);
+  }
+  return profiles[name];
+}
+
+function updateUserProfile(name, updater) {
+  const profiles = loadProfiles();
+  const prof = getUserProfile(name);
+  updater(prof);
+  profiles[name] = prof;
+  saveProfiles(profiles);
+  return prof;
+}
+
+function showToast(text) {
+  const toast = document.getElementById('badge-toast');
+  toast.textContent = text;
+  toast.style.display = 'block';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.display = 'none';
+  }, 3400);
+}
+
+function unlockBadge(name, badgeId) {
+  let newlyUnlocked = false;
+  updateUserProfile(name, (prof) => {
+    if (!prof.unlockedBadges.includes(badgeId)) {
+      prof.unlockedBadges.push(badgeId);
+      if (!prof.equippedBadge) prof.equippedBadge = badgeId;
+      newlyUnlocked = true;
+    }
+  });
+  if (newlyUnlocked) {
+    showToast(`배지 획득! [${badgeId}]`);
+  }
 }
 
 function loadRankings() {
@@ -391,9 +609,9 @@ function loadRankings() {
     if (raw !== null) return JSON.parse(raw);
   } catch (e) {}
   return [
+    { name: 'ImUnstable13', kills: 120, deaths: 12 },
     { name: 'CrystalKing', kills: 24, deaths: 8 },
-    { name: 'MaceGod', kills: 19, deaths: 9 },
-    { name: 'CartDrifter', kills: 15, deaths: 10 }
+    { name: 'MaceGod', kills: 19, deaths: 9 }
   ];
 }
 
@@ -445,6 +663,70 @@ window.addEventListener('storage', (e) => {
 });
 
 let myName = '';
+let selectedLoginWeapon = 1;
+
+document.querySelectorAll('#login-weapon-grid .weapon-card').forEach(card => {
+  card.onclick = () => {
+    document.querySelectorAll('#login-weapon-grid .weapon-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedLoginWeapon = Number(card.dataset.slot);
+  };
+});
+
+function refreshLobbyUserUI() {
+  if (!myName) return;
+  const prof = getUserProfile(myName);
+  document.getElementById('current-user-label').textContent = myName;
+  document.getElementById('current-weapon-label').textContent = WEAPON_INFO[prof.primaryWeapon].name;
+  document.getElementById('current-badge-label').textContent = prof.equippedBadge || '없음';
+
+  document.querySelectorAll('#settings-weapon-grid .weapon-card').forEach(card => {
+    const slot = Number(card.dataset.slot);
+    card.classList.toggle('selected', slot === prof.primaryWeapon);
+    card.onclick = () => {
+      updateUserProfile(myName, p => { p.primaryWeapon = slot; });
+      refreshLobbyUserUI();
+    };
+  });
+
+  const badgeList = document.getElementById('settings-badge-list');
+  badgeList.innerHTML = '';
+
+  const noneItem = document.createElement('div');
+  noneItem.className = 'badge-item' + (prof.equippedBadge === '' ? ' equipped' : '');
+  noneItem.innerHTML = `<div><strong>배지 미착용</strong><div style="color:#8b949e;font-size:0.74rem;">닉네임 아래 배지를 표시하지 않습니다</div></div>`;
+  const noneBtn = document.createElement('button');
+  noneBtn.className = 'btn-sub';
+  noneBtn.textContent = prof.equippedBadge === '' ? '착용중' : '선택';
+  noneBtn.onclick = () => {
+    updateUserProfile(myName, p => { p.equippedBadge = ''; });
+    refreshLobbyUserUI();
+  };
+  noneItem.appendChild(noneBtn);
+  badgeList.appendChild(noneItem);
+
+  BADGE_DEFS.forEach(b => {
+    const unlocked = prof.unlockedBadges.includes(b.id);
+    const equipped = prof.equippedBadge === b.id;
+    const item = document.createElement('div');
+    item.className = 'badge-item' + (!unlocked ? ' locked' : '') + (equipped ? ' equipped' : '');
+    item.innerHTML = `<div><strong>[${b.name}] ${unlocked ? '' : '(잠김)'}</strong><div style="color:#8b949e;font-size:0.74rem;">${b.desc}</div></div>`;
+    const btn = document.createElement('button');
+    btn.className = 'btn-sub';
+    if (!unlocked) {
+      btn.textContent = '미획득';
+      btn.disabled = true;
+    } else {
+      btn.textContent = equipped ? '착용중' : '착용';
+      btn.onclick = () => {
+        updateUserProfile(myName, p => { p.equippedBadge = b.id; });
+        refreshLobbyUserUI();
+      };
+    }
+    item.appendChild(btn);
+    badgeList.appendChild(item);
+  });
+}
 
 function attemptLogin() {
   const nick = document.getElementById('login-nickname').value.trim();
@@ -472,10 +754,14 @@ function attemptLogin() {
   }
 
   myName = nick;
+  updateUserProfile(myName, (prof) => {
+    prof.primaryWeapon = selectedLoginWeapon;
+  });
+
   statusEl.textContent = '';
-  document.getElementById('current-user-label').textContent = myName;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('menu-screen').style.display = 'flex';
+  refreshLobbyUserUI();
   renderRankings();
 }
 
@@ -488,8 +774,19 @@ document.getElementById('btn-logout').onclick = () => {
   cleanupNetwork();
   myName = '';
   document.getElementById('login-password').value = '';
+  document.getElementById('settings-box').style.display = 'none';
   document.getElementById('menu-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+};
+
+document.getElementById('btn-open-settings').onclick = () => {
+  const box = document.getElementById('settings-box');
+  if (box.style.display === 'none') {
+    refreshLobbyUserUI();
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
 };
 
 document.getElementById('btn-toggle-rank').onclick = () => {
@@ -506,6 +803,31 @@ document.getElementById('btn-open-duel').onclick = () => {
   const box = document.getElementById('duel-code-box');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
   document.getElementById('room-code-input').focus();
+};
+
+let pendingActionAfterConfirm = null;
+
+function askWeaponConfirmation(onConfirm) {
+  const prof = getUserProfile(myName);
+  const wName = WEAPON_INFO[prof.primaryWeapon].name;
+  document.getElementById('confirm-weapon-text').innerHTML =
+    `현재 선택된 주 무기는 <strong style="color:#f0883e;">[${wName}]</strong> 입니다.<br>이 무기로 하시겠습니까?`;
+  pendingActionAfterConfirm = onConfirm;
+  document.getElementById('confirm-modal').style.display = 'flex';
+}
+
+document.getElementById('btn-confirm-yes').onclick = () => {
+  document.getElementById('confirm-modal').style.display = 'none';
+  if (pendingActionAfterConfirm) {
+    const fn = pendingActionAfterConfirm;
+    pendingActionAfterConfirm = null;
+    fn();
+  }
+};
+
+document.getElementById('btn-confirm-no').onclick = () => {
+  document.getElementById('confirm-modal').style.display = 'none';
+  pendingActionAfterConfirm = null;
 };
 
 let gameMode = null;
@@ -550,26 +872,29 @@ function handleNetData(msg) {
   if (msg.roomCode && msg.roomCode !== activeRoomCode) return;
   if (msg.sender === myName) return;
 
+  const myBadge = getUserProfile(myName).equippedBadge || '';
+
   if (msg.type === 'LOCAL_SEEK' && !gameMode && activeRoomCode) {
     clearInterval(localSeekInterval);
     syncChannel.postMessage({
       type: 'LOCAL_ACCEPT',
       roomCode: activeRoomCode,
-      sender: myName
+      sender: myName,
+      badge: myBadge
     });
-    startMatch('pvp', msg.sender, false);
+    startMatch('pvp', msg.sender, false, msg.badge || '');
   } else if (msg.type === 'LOCAL_ACCEPT' && !gameMode && activeRoomCode) {
     clearInterval(localSeekInterval);
-    startMatch('pvp', msg.sender, true);
+    startMatch('pvp', msg.sender, true, msg.badge || '');
   } else if (msg.type === 'HELLO' && !gameMode) {
     opponentName = msg.name || '상대방';
     if (conn && conn.open) {
-      conn.send({ type: 'START', name: myName });
+      conn.send({ type: 'START', name: myName, badge: myBadge });
     }
-    startMatch('pvp', opponentName, true);
+    startMatch('pvp', opponentName, true, msg.badge || '');
   } else if (msg.type === 'START' && !gameMode) {
     opponentName = msg.name || '방장';
-    startMatch('pvp', opponentName, false);
+    startMatch('pvp', opponentName, false, msg.badge || '');
   } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
     const opp = players[1];
     if (opp) {
@@ -584,6 +909,7 @@ function handleNetData(msg) {
       opp.gliding = msg.gliding;
       opp.glideAngle = msg.glideAngle;
       opp.spearCharge = msg.spearCharge;
+      opp.badge = msg.badge || '';
       updateHUD();
     }
   } else if (msg.type === 'ACTION' && gameMode === 'pvp') {
@@ -605,6 +931,7 @@ function startCodeMatchmaking() {
   cleanupNetwork();
   activeRoomCode = rawCode;
   const hostPeerId = 'mc_smash_pvp_room_' + encodeURIComponent(rawCode);
+  const myBadge = getUserProfile(myName).equippedBadge || '';
   statusEl.textContent = `[코드: ${rawCode}] 같은 코드를 입력한 상대를 찾는 중...`;
 
   localSeekInterval = setInterval(() => {
@@ -612,7 +939,8 @@ function startCodeMatchmaking() {
       syncChannel.postMessage({
         type: 'LOCAL_SEEK',
         roomCode: activeRoomCode,
-        sender: myName
+        sender: myName,
+        badge: myBadge
       });
     }
   }, 500);
@@ -643,7 +971,7 @@ function startCodeMatchmaking() {
       peer.on('open', () => {
         conn = peer.connect(hostPeerId, { reliable: true });
         conn.on('open', () => {
-          conn.send({ type: 'HELLO', name: myName });
+          conn.send({ type: 'HELLO', name: myName, badge: myBadge });
         });
         conn.on('data', (data) => handleNetData(data));
         conn.on('close', () => {
@@ -659,9 +987,17 @@ function startCodeMatchmaking() {
   });
 }
 
-document.getElementById('btn-join-code').onclick = startCodeMatchmaking;
+document.getElementById('btn-join-code').onclick = () => {
+  const rawCode = document.getElementById('room-code-input').value.trim();
+  if (!rawCode) {
+    document.getElementById('queue-status').textContent = '입장할 방 코드를 입력해주세요 (예: 1515)';
+    return;
+  }
+  askWeaponConfirmation(() => startCodeMatchmaking());
+};
+
 document.getElementById('room-code-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') startCodeMatchmaking();
+  if (e.key === 'Enter') document.getElementById('btn-join-code').click();
 });
 
 const GRAVITY = 0.58;
@@ -686,7 +1022,13 @@ let particles = [];
 let swingAnimations = [];
 let matchEnded = false;
 
-function createPlayer(id, name, x, color, isBot = false) {
+let matchStats = {
+  totalDamageTakenP1: 0,
+  lastCartKillTime: 0,
+  lastP1DeathTime: 0
+};
+
+function createPlayer(id, name, x, weaponSlot, badgeText, isBot = false) {
   return {
     id,
     name,
@@ -694,11 +1036,11 @@ function createPlayer(id, name, x, color, isBot = false) {
     y: STAGE.y - 120,
     vx: 0,
     vy: 0,
-    w: 34,
-    h: 54,
+    w: 36,
+    h: 58,
     facing: id === 0 ? 1 : -1,
-    color,
-    weapon: 1,
+    weapon: weaponSlot,
+    badge: badgeText || '',
     damage: 0,
     stocks: 3,
     jumps: 2,
@@ -726,7 +1068,7 @@ function resetEntities() {
   swingAnimations = [];
 }
 
-function startMatch(mode, oppName, hostFlag = true) {
+function startMatch(mode, oppName, hostFlag = true, oppBadge = '') {
   if (localSeekInterval) {
     clearInterval(localSeekInterval);
     localSeekInterval = null;
@@ -737,25 +1079,37 @@ function startMatch(mode, oppName, hostFlag = true) {
   isHost = hostFlag;
   resetEntities();
 
+  matchStats = {
+    totalDamageTakenP1: 0,
+    lastCartKillTime: 0,
+    lastP1DeathTime: 0
+  };
+
+  const myProf = getUserProfile(myName);
+  const myWeapon = myProf.primaryWeapon || 1;
+  const myBadge = myProf.equippedBadge || '';
+
   const p1X = isHost ? STAGE.x + STAGE.w * 0.25 : STAGE.x + STAGE.w * 0.75;
   const p2X = isHost ? STAGE.x + STAGE.w * 0.75 : STAGE.x + STAGE.w * 0.25;
 
   players = [
-    createPlayer(0, myName, p1X, '#58a6ff', false),
-    createPlayer(1, opponentName, p2X, '#ff7b72', mode === 'bot')
+    createPlayer(0, myName, p1X, myWeapon, myBadge, false),
+    createPlayer(1, opponentName, p2X, 1, oppBadge, mode === 'bot')
   ];
   players[0].facing = isHost ? 1 : -1;
   players[1].facing = isHost ? -1 : 1;
 
   document.getElementById('p1-label').textContent = players[0].name;
   document.getElementById('p2-label').textContent = players[1].name;
+  document.getElementById('equipped-weapon-title').textContent = `장착 주 무기: ${WEAPON_INFO[myWeapon].name}`;
+  document.getElementById('equipped-weapon-desc').textContent = WEAPON_INFO[myWeapon].desc;
+
   document.getElementById('menu-screen').style.display = 'none';
   document.getElementById('hud').style.display = 'flex';
-  document.getElementById('hotbar').style.display = 'flex';
+  document.getElementById('equipped-bar').style.display = 'block';
   document.getElementById('live-rank-mini').style.display = 'block';
   document.getElementById('exit-btn').style.display = 'block';
   renderRankings();
-  selectWeapon(0, 1);
   updateHUD();
 }
 
@@ -765,43 +1119,27 @@ function exitToMenu() {
   document.getElementById('queue-status').textContent = '';
   document.getElementById('menu-screen').style.display = 'flex';
   document.getElementById('hud').style.display = 'none';
-  document.getElementById('hotbar').style.display = 'none';
+  document.getElementById('equipped-bar').style.display = 'none';
   document.getElementById('live-rank-mini').style.display = 'none';
   document.getElementById('exit-btn').style.display = 'none';
+  refreshLobbyUserUI();
   renderRankings();
 }
 
 document.getElementById('exit-btn').onclick = exitToMenu;
 
 document.getElementById('btn-bot').onclick = () => {
-  botDifficulty = document.getElementById('bot-diff').value;
-  const diffLabel = botDifficulty === 'easy' ? '초급 봇' : botDifficulty === 'normal' ? '중급 봇' : '마스터 봇';
-  startMatch('bot', diffLabel, true);
+  askWeaponConfirmation(() => {
+    botDifficulty = document.getElementById('bot-diff').value;
+    const diffLabel = botDifficulty === 'easy' ? '초급 봇' : botDifficulty === 'normal' ? '중급 봇' : '마스터 봇';
+    startMatch('bot', diffLabel, true, botDifficulty === 'hard' ? '마스터 AI' : '');
+  });
 };
-
-function selectWeapon(playerIdx, slot) {
-  const p = players[playerIdx];
-  if (!p) return;
-  if (p.weapon !== slot && p.gliding) {
-    p.gliding = false;
-    p.fallStartY = p.y - Math.max(40, p.diveSpeed * 12);
-  }
-  p.weapon = slot;
-  if (playerIdx === 0) {
-    [1, 2, 3, 4].forEach(i => {
-      document.getElementById('slot-' + i).classList.toggle('active', i === slot);
-    });
-  }
-}
 
 const keys = {};
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (!gameMode) return;
-  if (e.code === 'Digit1') selectWeapon(0, 1);
-  if (e.code === 'Digit2') selectWeapon(0, 2);
-  if (e.code === 'Digit3') selectWeapon(0, 3);
-  if (e.code === 'Digit4') selectWeapon(0, 4);
   if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') jumpPlayer(0);
   if (e.code === 'KeyJ') performPrimaryAttack(0);
   if (e.code === 'KeyK') performSecondaryAction(0);
@@ -847,7 +1185,16 @@ function spawnParticles(x, y, color, count, speed) {
   }
 }
 
-function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, lowFeetProtection = false) {
+function applyDamageToPlayer(targetIdx, dmg) {
+  const target = players[targetIdx];
+  if (!target || dmg <= 0) return;
+  target.damage += dmg;
+  if (targetIdx === 0) {
+    matchStats.totalDamageTakenP1 += dmg;
+  }
+}
+
+function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, lowFeetProtection = false, sourceType = '') {
   spawnParticles(x, y, '#ff7b72', 28, 8.5);
   spawnParticles(x, y, '#ffa657', 22, 6.5);
   spawnParticles(x, y, '#f8e3a1', 14, 4.5);
@@ -864,7 +1211,11 @@ function triggerExplosion(x, y, radius, baseDamage, baseKnockback, ownerIdx, low
         mult *= 0.25;
       }
       const dmg = Math.round(baseDamage * mult);
-      target.damage += dmg;
+      applyDamageToPlayer(idx, dmg);
+      if (sourceType === 'cart') {
+        target.lastHitByCartTime = Date.now();
+        target.lastHitByCartOwner = ownerIdx;
+      }
       const kbScale = (1 + target.damage / 82) * baseKnockback * mult;
       const angle = Math.atan2(dy - 18, dx);
       target.vx += Math.cos(angle) * kbScale;
@@ -900,7 +1251,7 @@ function executeMaceSmash(idx, speedBonus, isAerialBurst) {
   if (dist < 74) {
     const bonus = isSmash ? Math.min(54, Math.floor(effectiveFall * 0.24)) : 0;
     const totalDmg = 14 + bonus;
-    target.damage += totalDmg;
+    applyDamageToPlayer(1 - idx, totalDmg);
     const kb = (1 + target.damage / 78) * (isSmash ? 14.5 + bonus * 0.26 : 7.5);
     target.vx += p.facing * kb;
     target.vy -= isSmash ? (10.5 + bonus * 0.18) : 4.5;
@@ -961,7 +1312,7 @@ function performPrimaryAttack(idx, fromRemote = false) {
         if (inFront && Math.abs(dx) <= reach && Math.abs(dy) <= 46) {
           const speedScale = Math.min(28, Math.floor(currentSpeed * 1.35));
           const dmg = 11 + speedScale;
-          target.damage += dmg;
+          applyDamageToPlayer(1 - idx, dmg);
           const kb = (1 + target.damage / 85) * (8.5 + speedScale * 0.28);
           target.vx += p.facing * kb;
           target.vy -= 5.2 + speedScale * 0.12;
@@ -991,7 +1342,7 @@ function performPrimaryAttack(idx, fromRemote = false) {
     const hitIdx = crystals.findIndex(c => Math.hypot(c.x - (cx + p.facing * 36), c.y - cy) < 72);
     if (hitIdx !== -1) {
       const c = crystals.splice(hitIdx, 1)[0];
-      triggerExplosion(c.x, c.y, 145, 34, 15.5, idx, true);
+      triggerExplosion(c.x, c.y, 145, 34, 15.5, idx, true, 'crystal');
     } else {
       const placeX = cx + p.facing * 44;
       const placeY = getSurfaceY(placeX, p.y + p.h);
@@ -1080,7 +1431,7 @@ function performSecondaryAction(idx, fromRemote = false) {
     } else {
       const aIdx = anchors.indexOf(nearAnchor);
       if (aIdx !== -1) anchors.splice(aIdx, 1);
-      triggerExplosion(nearAnchor.x, nearAnchor.y, 155, 36, 16.5, idx, true);
+      triggerExplosion(nearAnchor.x, nearAnchor.y, 155, 36, 16.5, idx, true, 'anchor');
     }
   } else if (p.weapon === 4) {
     p.secondaryCooldown = 20;
@@ -1118,17 +1469,50 @@ function updateHUD() {
   document.getElementById('p2-stocks').textContent = '●'.repeat(Math.max(0, players[1].stocks));
 }
 
+function recordKillProgress(weaponUsed) {
+  const updated = updateUserProfile(myName, (prof) => {
+    prof.totalKills = (prof.totalKills || 0) + 1;
+    if (!prof.weaponKills) prof.weaponKills = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    prof.weaponKills[weaponUsed] = (prof.weaponKills[weaponUsed] || 0) + 1;
+  });
+
+  if (updated.totalKills >= 500) unlockBadge(myName, '킬러');
+  if (updated.totalKills >= 999) unlockBadge(myName, 'God of War');
+  const wk = updated.weaponKills;
+  if (wk[1] >= 100 && wk[2] >= 100 && wk[3] >= 100 && wk[4] >= 100) {
+    unlockBadge(myName, 'Combat Master');
+  }
+}
+
 function handleKO(victimIdx) {
   if (matchEnded) return;
   const victim = players[victimIdx];
   const killer = players[1 - victimIdx];
+  const now = Date.now();
+
   victim.stocks--;
   victim.gliding = false;
   victim.spearCharge = 0;
+
+  if (victimIdx === 1) {
+    recordKillProgress(players[0].weapon);
+    if (victim.lastHitByCartOwner === 0 && (now - (victim.lastHitByCartTime || 0)) < 4000) {
+      matchStats.lastCartKillTime = now;
+      if (Math.abs(matchStats.lastCartKillTime - matchStats.lastP1DeathTime) <= 2500) {
+        unlockBadge(myName, '???');
+      }
+    }
+  } else if (victimIdx === 0) {
+    matchStats.lastP1DeathTime = now;
+    if (Math.abs(matchStats.lastCartKillTime - matchStats.lastP1DeathTime) <= 2500 && matchStats.lastCartKillTime > 0) {
+      unlockBadge(myName, '???');
+    }
+  }
+
   spawnParticles(
     Math.max(80, Math.min(canvas.width - 80, victim.x)),
     Math.max(80, Math.min(canvas.height - 80, victim.y)),
-    victim.color, 35, 10
+    victimIdx === 0 ? '#58a6ff' : '#ff7b72', 35, 10
   );
   updateHUD();
 
@@ -1137,11 +1521,28 @@ function handleKO(victimIdx) {
     const p1Kills = 3 - players[1].stocks;
     const p1Deaths = 3 - players[0].stocks;
     saveRanking(players[0].name, p1Kills, p1Deaths);
+
+    const p1Won = players[0].stocks > 0;
+    const qualifiedOpponent = (gameMode === 'pvp') || (gameMode === 'bot' && (botDifficulty === 'normal' || botDifficulty === 'hard'));
+
+    if (p1Won) {
+      if (qualifiedOpponent && p1Deaths === 0) {
+        if (matchStats.totalDamageTakenP1 === 0) {
+          unlockBadge(myName, '무적');
+        } else if (matchStats.totalDamageTakenP1 > 0 && matchStats.totalDamageTakenP1 < 50) {
+          unlockBadge(myName, 'Sub 50');
+        }
+      }
+      if (players[1].name === 'ImUnstable13') {
+        unlockBadge(myName, '관리자 주세요');
+      }
+    }
+
     const winnerText = killer.name + ' 승리!';
     setTimeout(() => {
-      alert(winnerText + ' (K/D 랭킹에 즉시 반영되었습니다)');
+      alert(winnerText + ' (K/D 랭킹 및 배지 조건이 반영되었습니다)');
       exitToMenu();
-    }, 150);
+    }, 180);
     return;
   }
 
@@ -1183,10 +1584,10 @@ function updateBot(bot, target) {
       return;
     }
     if (dist > 170) {
-      selectWeapon(1, 2);
+      bot.weapon = 2;
       performSecondaryAction(1);
     } else if (dist > 95) {
-      selectWeapon(1, 1);
+      bot.weapon = 1;
       if (bot.onGround) {
         performSecondaryAction(1);
       } else {
@@ -1195,10 +1596,10 @@ function updateBot(bot, target) {
     } else {
       const roll = Math.random();
       if (roll < 0.35) {
-        selectWeapon(1, 1);
+        bot.weapon = 1;
         performPrimaryAttack(1);
       } else if (roll < 0.7) {
-        selectWeapon(1, 3);
+        bot.weapon = 3;
         const myAnchor = anchors.find(a => Math.hypot(a.x - bot.x, a.y - bot.y) < 110);
         if (myAnchor && myAnchor.charges >= 1) {
           performSecondaryAction(1);
@@ -1208,13 +1609,13 @@ function updateBot(bot, target) {
           performSecondaryAction(1);
         }
       } else {
-        selectWeapon(1, 4);
+        bot.weapon = 4;
         performPrimaryAttack(1);
       }
     }
   } else {
     if (dist < 90) {
-      selectWeapon(1, Math.random() < 0.5 ? 1 : 4);
+      bot.weapon = Math.random() < 0.5 ? 1 : 4;
       performPrimaryAttack(1);
     }
   }
@@ -1230,19 +1631,11 @@ function update() {
 
   if (moveLeft) {
     p1.facing = -1;
-    if (p1.gliding) {
-      p1.vx -= 0.48;
-    } else {
-      p1.vx -= 0.72;
-    }
+    p1.vx -= p1.gliding ? 0.48 : 0.72;
   }
   if (moveRight) {
     p1.facing = 1;
-    if (p1.gliding) {
-      p1.vx += 0.48;
-    } else {
-      p1.vx += 0.72;
-    }
+    p1.vx += p1.gliding ? 0.48 : 0.72;
   }
 
   if (gameMode === 'bot') {
@@ -1327,7 +1720,7 @@ function update() {
       facing: me.facing, weapon: me.weapon,
       damage: me.damage, stocks: me.stocks,
       gliding: me.gliding, glideAngle: me.glideAngle,
-      spearCharge: me.spearCharge
+      spearCharge: me.spearCharge, badge: me.badge
     });
   }
 
@@ -1340,7 +1733,7 @@ function update() {
     const hitCartIdx = tntCarts.findIndex(c => Math.hypot(c.x - arr.x, c.y - arr.y) < 28);
     if (hitCartIdx !== -1) {
       const cart = tntCarts.splice(hitCartIdx, 1)[0];
-      triggerExplosion(cart.x, cart.y, 150, 35, 16.0, arr.ownerIdx, true);
+      triggerExplosion(cart.x, cart.y, 150, 35, 16.0, arr.ownerIdx, true, 'cart');
       flameArrows.splice(i, 1);
     } else if (arr.life <= 0) {
       flameArrows.splice(i, 1);
@@ -1396,6 +1789,113 @@ function drawSpearIcon(x, y, facing, thrusting = false) {
   ctx.closePath();
   ctx.fill();
   ctx.restore();
+}
+
+function drawMinecraftArmorCharacter(p, x, y, w, h) {
+  const isAdmin = p.name === 'ImUnstable13';
+
+  if (p.weapon === 2 && !p.gliding) {
+    ctx.fillStyle = '#6e7681';
+    ctx.fillRect(p.facing === 1 ? x - 5 : x + w - 1, y + 18, 6, 26);
+  }
+
+  ctx.fillStyle = '#e0aa84';
+  ctx.fillRect(x + 6, y + 2, w - 12, 16);
+  ctx.fillStyle = '#1f2328';
+  const eyeX = p.facing === 1 ? x + w - 12 : x + 8;
+  ctx.fillRect(eyeX, y + 10, 4, 3);
+
+  ctx.fillStyle = '#d49a6a';
+  ctx.fillRect(x + 1, y + 19, 5, 20);
+  ctx.fillRect(x + w - 6, y + 19, 5, 20);
+
+  if (!isAdmin) {
+    ctx.fillStyle = '#2ccdb0';
+    ctx.fillRect(x + 4, y, w - 8, 8);
+    ctx.fillRect(x + 4, y + 6, 4, 9);
+    ctx.fillRect(x + w - 8, y + 6, 4, 9);
+    ctx.fillStyle = '#7ef5e1';
+    ctx.fillRect(x + 7, y + 2, w - 14, 3);
+    ctx.fillRect(x + w / 2 - 2, y + 6, 4, 6);
+
+    ctx.fillStyle = '#2ccdb0';
+    ctx.fillRect(x + 6, y + 18, w - 12, 20);
+    ctx.fillStyle = '#7ef5e1';
+    ctx.fillRect(x + 9, y + 20, w - 18, 4);
+    ctx.fillRect(x + w / 2 - 3, y + 22, 6, 12);
+    ctx.fillStyle = '#1d9c85';
+    ctx.fillRect(x + 6, y + 34, w - 12, 4);
+
+    ctx.fillStyle = '#2ccdb0';
+    ctx.fillRect(x + 1, y + 17, 7, 10);
+    ctx.fillRect(x + w - 8, y + 17, 7, 10);
+    ctx.fillStyle = '#7ef5e1';
+    ctx.fillRect(x + 2, y + 18, 5, 3);
+    ctx.fillRect(x + w - 7, y + 18, 5, 3);
+
+    ctx.fillStyle = '#1d9c85';
+    ctx.fillRect(x + 7, y + 38, 10, 12);
+    ctx.fillRect(x + w - 17, y + 38, 10, 12);
+    ctx.fillStyle = '#2ccdb0';
+    ctx.fillRect(x + 8, y + 40, 8, 8);
+    ctx.fillRect(x + w - 16, y + 40, 8, 8);
+
+    ctx.fillStyle = '#167a68';
+    ctx.fillRect(x + 6, y + 50, 11, 8);
+    ctx.fillRect(x + w - 17, y + 50, 11, 8);
+    ctx.fillStyle = '#7ef5e1';
+    ctx.fillRect(x + 7, y + 51, 9, 2);
+    ctx.fillRect(x + w - 16, y + 51, 9, 2);
+  } else {
+    ctx.fillStyle = '#4a4149';
+    ctx.fillRect(x + 4, y, w - 8, 9);
+    ctx.fillRect(x + 4, y + 6, 4, 10);
+    ctx.fillRect(x + w - 8, y + 6, 4, 10);
+    ctx.fillStyle = '#2c252b';
+    ctx.fillRect(x + 6, y + 2, w - 12, 3);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + w / 2 - 2, y, 4, 9);
+    ctx.fillStyle = '#4a90ff';
+    ctx.fillRect(x + w / 2 - 1, y + 2, 2, 6);
+
+    ctx.fillStyle = '#443b43';
+    ctx.fillRect(x + 6, y + 18, w - 12, 20);
+    ctx.fillStyle = '#2d262c';
+    ctx.fillRect(x + 8, y + 20, w - 16, 16);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + 10, y + 21, w - 20, 12);
+    ctx.fillStyle = '#4a90ff';
+    ctx.fillRect(x + w / 2 - 3, y + 23, 6, 8);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + 7, y + 34, w - 14, 3);
+
+    ctx.fillStyle = '#4a4149';
+    ctx.fillRect(x, y + 17, 8, 11);
+    ctx.fillRect(x + w - 8, y + 17, 8, 11);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + 1, y + 20, 6, 3);
+    ctx.fillRect(x + w - 7, y + 20, 6, 3);
+    ctx.fillStyle = '#4a90ff';
+    ctx.fillRect(x + 2, y + 18, 4, 2);
+    ctx.fillRect(x + w - 6, y + 18, 4, 2);
+
+    ctx.fillStyle = '#3b333a';
+    ctx.fillRect(x + 7, y + 38, 10, 12);
+    ctx.fillRect(x + w - 17, y + 38, 10, 12);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + 8, y + 41, 8, 3);
+    ctx.fillRect(x + w - 16, y + 41, 8, 3);
+
+    ctx.fillStyle = '#2c252b';
+    ctx.fillRect(x + 6, y + 50, 11, 8);
+    ctx.fillRect(x + w - 17, y + 50, 11, 8);
+    ctx.fillStyle = '#1d63dc';
+    ctx.fillRect(x + 6, y + 50, 11, 3);
+    ctx.fillRect(x + w - 17, y + 50, 11, 3);
+    ctx.fillStyle = '#4a90ff';
+    ctx.fillRect(x + 8, y + 54, 7, 2);
+    ctx.fillRect(x + w - 15, y + 54, 7, 2);
+  }
 }
 
 function drawEndCrystal(c) {
@@ -1557,55 +2057,46 @@ function draw() {
       ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.w / 2, -p.h / 2 + 12, p.w, p.h - 14);
-      ctx.fillStyle = '#f0c6a8';
-      ctx.fillRect(-p.w / 2 + 5, -p.h / 2, p.w - 10, 14);
+      drawMinecraftArmorCharacter(p, -p.w / 2, -p.h / 2, p.w, p.h);
       drawMaceIcon(p.facing * 18, 4, p.facing * 0.6, 0.85);
       ctx.restore();
+    } else {
+      drawMinecraftArmorCharacter(p, p.x, p.y, p.w, p.h);
 
-      ctx.fillStyle = '#a5d6ff';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(p.name + ' [활강]', cx, p.y - 10);
-      return;
-    }
-
-    if (p.weapon === 2) {
-      ctx.fillStyle = '#6e7681';
-      ctx.fillRect(p.facing === 1 ? p.x - 5 : p.x + p.w - 1, p.y + 18, 6, 26);
-    }
-
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x, p.y + 16, p.w, p.h - 16);
-    ctx.fillStyle = '#f0c6a8';
-    ctx.fillRect(p.x + 5, p.y, p.w - 10, 16);
-    ctx.fillStyle = '#0d1117';
-    const eyeX = p.facing === 1 ? p.x + p.w - 11 : p.x + 7;
-    ctx.fillRect(eyeX, p.y + 5, 4, 4);
-
-    const handX = p.facing === 1 ? p.x + p.w + 4 : p.x - 4;
-    const handY = p.y + 28;
-    if (p.weapon === 1) {
-      if (!p.onGround && p.vy > 1.5) {
+      const handX = p.facing === 1 ? p.x + p.w + 4 : p.x - 4;
+      const handY = p.y + 28;
+      if (p.weapon === 1) {
+        if (!p.onGround && p.vy > 1.5) {
+          drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
+        } else {
+          drawSpearIcon(handX, handY, p.facing, p.spearThrustTimer > 0);
+        }
+      } else if (p.weapon === 2) {
         drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
-      } else {
-        drawSpearIcon(handX, handY, p.facing, p.spearThrustTimer > 0);
+      } else if (p.weapon === 3) {
+        ctx.fillStyle = '#d2a8ff';
+        ctx.fillRect(handX - 6, handY - 6, 12, 12);
+      } else if (p.weapon === 4) {
+        ctx.fillStyle = '#d73a49';
+        ctx.fillRect(handX - 7, handY - 5, 14, 10);
       }
-    } else if (p.weapon === 2) {
-      drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
-    } else if (p.weapon === 3) {
-      ctx.fillStyle = '#d2a8ff';
-      ctx.fillRect(handX - 6, handY - 6, 12, 12);
-    } else if (p.weapon === 4) {
-      ctx.fillStyle = '#d73a49';
-      ctx.fillRect(handX - 7, handY - 5, 14, 10);
+      ctx.restore();
     }
 
-    ctx.fillStyle = '#e6edf3';
+    ctx.save();
+    const hasBadge = Boolean(p.badge);
+    const nameY = hasBadge ? p.y - 22 : p.y - 8;
+
+    ctx.fillStyle = p.name === 'ImUnstable13' ? '#4a90ff' : '#e6edf3';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(p.name, cx, p.y - 8);
+    ctx.fillText(p.name, cx, nameY);
+
+    if (hasBadge) {
+      ctx.fillStyle = '#ffd33d';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(`[${p.badge}]`, cx, p.y - 9);
+    }
     ctx.restore();
   });
 
