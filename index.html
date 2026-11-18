@@ -390,7 +390,7 @@
 
 <div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">다이아몬드 갑옷 · 어드민 청금석 네더라이트 · 배지 시스템</div>
+  <div class="subtitle">다이아몬드 갑옷 · 랭킹 1위 네더라이트 챔피언 · 배지 시스템</div>
 
   <div class="panel">
     <div class="user-header">
@@ -519,7 +519,7 @@ const BADGE_DEFS = [
   { id: '킬러', name: '킬러', desc: '누적 500킬 달성' },
   { id: 'God of War', name: 'God of War', desc: '누적 999킬 달성' },
   { id: 'Combat Master', name: 'Combat Master', desc: '4종류 모든 무기로 각각 100킬 이상 달성' },
-  { id: '관리자 주세요', name: '관리자 주세요', desc: '어드민(ImUnstable15)과의 대결에서 승리' }
+  { id: '왕좌 탈환', name: '왕좌 탈환', desc: '실시간 K/D 비율 1위 챔피언과의 대결에서 승리' }
 ];
 
 const ACCOUNTS_KEY = 'mc_smash_accounts_v2';
@@ -533,7 +533,6 @@ function loadAccounts() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return {
-    'ImUnstable15': 'admin1234',
     'CrystalKing': '1234',
     'MaceGod': '1234'
   };
@@ -609,10 +608,20 @@ function loadRankings() {
     if (raw !== null) return JSON.parse(raw);
   } catch (e) {}
   return [
-    { name: 'ImUnstable15', kills: 120, deaths: 12 },
     { name: 'CrystalKing', kills: 24, deaths: 8 },
     { name: 'MaceGod', kills: 19, deaths: 9 }
   ];
+}
+
+function getTopKDPlayerName() {
+  const list = loadRankings();
+  if (!list || list.length === 0) return '';
+  const sorted = [...list].sort((a, b) => {
+    const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
+    const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
+    return kdB - kdA || b.kills - a.kills;
+  });
+  return sorted[0].kills > 0 ? sorted[0].name : '';
 }
 
 function saveRanking(name, killsAdd, deathsAdd) {
@@ -1518,6 +1527,7 @@ function handleKO(victimIdx) {
 
   if (victim.stocks <= 0) {
     matchEnded = true;
+    const topPlayerBeforeMatch = getTopKDPlayerName();
     const p1Kills = 3 - players[1].stocks;
     const p1Deaths = 3 - players[0].stocks;
     saveRanking(players[0].name, p1Kills, p1Deaths);
@@ -1533,8 +1543,8 @@ function handleKO(victimIdx) {
           unlockBadge(myName, 'Sub 50');
         }
       }
-      if (players[1].name === 'ImUnstable15') {
-        unlockBadge(myName, '관리자 주세요');
+      if (players[1].name === topPlayerBeforeMatch && topPlayerBeforeMatch !== myName) {
+        unlockBadge(myName, '왕좌 탈환');
       }
     }
 
@@ -1792,7 +1802,7 @@ function drawSpearIcon(x, y, facing, thrusting = false) {
 }
 
 function drawMinecraftArmorCharacter(p, x, y, w, h) {
-  const isAdmin = p.name === 'ImUnstable15';
+  const isTopKD = p.name === getTopKDPlayerName();
 
   if (p.weapon === 2 && !p.gliding) {
     ctx.fillStyle = '#6e7681';
@@ -1809,7 +1819,7 @@ function drawMinecraftArmorCharacter(p, x, y, w, h) {
   ctx.fillRect(x + 1, y + 19, 5, 20);
   ctx.fillRect(x + w - 6, y + 19, 5, 20);
 
-  if (!isAdmin) {
+  if (!isTopKD) {
     ctx.fillStyle = '#2ccdb0';
     ctx.fillRect(x + 4, y, w - 8, 8);
     ctx.fillRect(x + 4, y + 6, 4, 9);
@@ -2019,103 +2029,4 @@ function draw() {
     if (anim.type === 'mace') {
       ctx.save();
       ctx.translate(ox, oy);
-      ctx.strokeStyle = anim.isSmash ? '#79c0ff' : '#c9d1d9';
-      ctx.lineWidth = anim.isSmash ? 6 : 3;
-      ctx.beginPath();
-      const startAng = anim.facing === 1 ? -1.2 : Math.PI + 1.2;
-      const endAng = startAng + anim.facing * (progress * 2.4);
-      ctx.arc(0, 0, 48, Math.min(startAng, endAng), Math.max(startAng, endAng));
-      ctx.stroke();
-      ctx.restore();
-    } else if (anim.type === 'spear') {
-      ctx.save();
-      ctx.strokeStyle = anim.isCharged ? '#ffd33d' : '#79c0ff';
-      ctx.lineWidth = anim.isCharged ? 5 : 3;
-      ctx.beginPath();
-      ctx.moveTo(ox, oy);
-      ctx.lineTo(ox + anim.facing * (55 + progress * 48), oy);
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
-
-  players.forEach(p => {
-    if (p.invuln > 0 && Math.floor(p.invuln / 5) % 2 === 0) return;
-    ctx.save();
-
-    const cx = p.x + p.w / 2;
-    const cy = p.y + p.h / 2;
-
-    if (p.gliding) {
-      ctx.translate(cx, cy);
-      ctx.rotate(p.facing === 1 ? 0.55 : -0.55);
-      ctx.fillStyle = '#8b949e';
-      ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.lineTo(-p.facing * 26, -24);
-      ctx.lineTo(-p.facing * 18, 12);
-      ctx.closePath();
-      ctx.fill();
-
-      drawMinecraftArmorCharacter(p, -p.w / 2, -p.h / 2, p.w, p.h);
-      drawMaceIcon(p.facing * 18, 4, p.facing * 0.6, 0.85);
-      ctx.restore();
-    } else {
-      drawMinecraftArmorCharacter(p, p.x, p.y, p.w, p.h);
-
-      const handX = p.facing === 1 ? p.x + p.w + 4 : p.x - 4;
-      const handY = p.y + 28;
-      if (p.weapon === 1) {
-        if (!p.onGround && p.vy > 1.5) {
-          drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
-        } else {
-          drawSpearIcon(handX, handY, p.facing, p.spearThrustTimer > 0);
-        }
-      } else if (p.weapon === 2) {
-        drawMaceIcon(handX, handY, p.facing * 0.45, 0.85);
-      } else if (p.weapon === 3) {
-        ctx.fillStyle = '#d2a8ff';
-        ctx.fillRect(handX - 6, handY - 6, 12, 12);
-      } else if (p.weapon === 4) {
-        ctx.fillStyle = '#d73a49';
-        ctx.fillRect(handX - 7, handY - 5, 14, 10);
-      }
-      ctx.restore();
-    }
-
-    ctx.save();
-    const hasBadge = Boolean(p.badge);
-    const nameY = hasBadge ? p.y - 22 : p.y - 8;
-
-    ctx.fillStyle = p.name === 'ImUnstable15' ? '#4a90ff' : '#e6edf3';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(p.name, cx, nameY);
-
-    if (hasBadge) {
-      ctx.fillStyle = '#ffd33d';
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillText(`[${p.badge}]`, cx, p.y - 9);
-    }
-    ctx.restore();
-  });
-
-  particles.forEach(pt => {
-    ctx.save();
-    ctx.globalAlpha = pt.life / pt.maxLife;
-    ctx.fillStyle = pt.color;
-    ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
-    ctx.restore();
-  });
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-renderRankings();
-loop();
-</script>
-</body>
-</html>
+      ctx.strokeStyle = anim.isSmash ? '#
