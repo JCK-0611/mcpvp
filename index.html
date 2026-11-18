@@ -519,7 +519,7 @@ const BADGE_DEFS = [
   { id: '킬러', name: '킬러', desc: '누적 500킬 달성' },
   { id: 'God of War', name: 'God of War', desc: '누적 999킬 달성' },
   { id: 'Combat Master', name: 'Combat Master', desc: '4종류 모든 무기로 각각 100킬 이상 달성' },
-  { id: '관리자 주세요', name: '관리자 주세요', desc: '어드민(ImUnstable13)과의 대결에서 승리' }
+  { id: '관리자 주세요', name: '관리자 주세요', desc: '어드민(ImUnstable15)과의 대결에서 승리' }
 ];
 
 const ACCOUNTS_KEY = 'mc_smash_accounts_v2';
@@ -533,7 +533,7 @@ function loadAccounts() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return {
-    'ImUnstable13': 'admin1234',
+    'ImUnstable15': 'admin1234',
     'CrystalKing': '1234',
     'MaceGod': '1234'
   };
@@ -609,7 +609,7 @@ function loadRankings() {
     if (raw !== null) return JSON.parse(raw);
   } catch (e) {}
   return [
-    { name: 'ImUnstable13', kills: 120, deaths: 12 },
+    { name: 'ImUnstable15', kills: 120, deaths: 12 },
     { name: 'CrystalKing', kills: 24, deaths: 8 },
     { name: 'MaceGod', kills: 19, deaths: 9 }
   ];
@@ -1533,7 +1533,7 @@ function handleKO(victimIdx) {
           unlockBadge(myName, 'Sub 50');
         }
       }
-      if (players[1].name === 'ImUnstable13') {
+      if (players[1].name === 'ImUnstable15') {
         unlockBadge(myName, '관리자 주세요');
       }
     }
@@ -1792,7 +1792,7 @@ function drawSpearIcon(x, y, facing, thrusting = false) {
 }
 
 function drawMinecraftArmorCharacter(p, x, y, w, h) {
-  const isAdmin = p.name === 'ImUnstable13';
+  const isAdmin = p.name === 'ImUnstable15';
 
   if (p.weapon === 2 && !p.gliding) {
     ctx.fillStyle = '#6e7681';
@@ -2087,7 +2087,7 @@ function draw() {
     const hasBadge = Boolean(p.badge);
     const nameY = hasBadge ? p.y - 22 : p.y - 8;
 
-    ctx.fillStyle = p.name === 'ImUnstable13' ? '#4a90ff' : '#e6edf3';
+    ctx.fillStyle = p.name === 'ImUnstable15' ? '#4a90ff' : '#e6edf3';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(p.name, cx, nameY);
