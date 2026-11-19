@@ -166,6 +166,36 @@
     border-radius: 8px;
     padding: 14px;
     margin-top: 6px;
+    max-height: 56vh;
+    overflow-y: auto;
+  }
+  .kill-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .kill-stat-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 7px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #c9d1d9;
+  }
+  .kill-stat-card.total-card {
+    grid-column: 1 / -1;
+    border-color: #58a6ff;
+    background: #1c2432;
+    font-weight: bold;
+    color: #e6edf3;
+  }
+  .kill-stat-val {
+    color: #79c0ff;
+    font-weight: bold;
   }
   .badge-list {
     display: flex;
@@ -425,8 +455,21 @@
         </div>
       </div>
 
+      <span class="section-label">내 킬 기록 (전체 / 무기별)</span>
+      <div class="kill-stats-grid" id="settings-kill-stats"></div>
+
       <span class="section-label">배지 장착 (닉네임 아래 표시)</span>
-      <div class="badge-list" id="settings-badge-list"></div>
+      <div class="badge-list" id="settings-badge-list" style="margin-bottom:12px;"></div>
+
+      <span class="section-label">실시간 K/D 랭킹 보드</span>
+      <div style="background:#161b22; border:1px solid #30363d; border-radius:6px; padding:6px;">
+        <table style="margin-top:0;">
+          <thead>
+            <tr><th>순위</th><th>플레이어</th><th>Kills</th><th>Deaths</th><th>K/D</th></tr>
+          </thead>
+          <tbody id="settings-ranking-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="btn-group" style="margin-top:10px;">
@@ -645,17 +688,19 @@ function saveRanking(name, killsAdd, deathsAdd) {
 
 function renderRankings() {
   const tbody = document.getElementById('ranking-body');
+  const settingsTbody = document.getElementById('settings-ranking-body');
   const miniList = document.getElementById('mini-rank-list');
   const list = loadRankings();
-  if (tbody) {
-    tbody.innerHTML = '';
+  [tbody, settingsTbody].forEach(targetBody => {
+    if (!targetBody) return;
+    targetBody.innerHTML = '';
     list.forEach((item, idx) => {
       const kd = item.deaths === 0 ? item.kills.toFixed(2) : (item.kills / item.deaths).toFixed(2);
       const tr = document.createElement('tr');
       tr.innerHTML = `<td>${idx + 1}</td><td>${item.name}</td><td>${item.kills}</td><td>${item.deaths}</td><td>${kd}</td>`;
-      tbody.appendChild(tr);
+      targetBody.appendChild(tr);
     });
-  }
+  });
   if (miniList) {
     miniList.innerHTML = '';
     list.slice(0, 4).forEach((item, idx) => {
@@ -697,6 +742,35 @@ function refreshLobbyUserUI() {
       refreshLobbyUserUI();
     };
   });
+
+  const killStatsEl = document.getElementById('settings-kill-stats');
+  if (killStatsEl) {
+    const wk = prof.weaponKills || { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const totalKills = prof.totalKills || 0;
+    killStatsEl.innerHTML = `
+      <div class="kill-stat-card total-card">
+        <span>전체 누적 킬</span>
+        <span class="kill-stat-val">${totalKills} Kills</span>
+      </div>
+      <div class="kill-stat-card">
+        <span>1. 창 / 철퇴</span>
+        <span class="kill-stat-val">${wk[1] || 0} Kills</span>
+      </div>
+      <div class="kill-stat-card">
+        <span>2. 겉날개 / 철퇴</span>
+        <span class="kill-stat-val">${wk[2] || 0} Kills</span>
+      </div>
+      <div class="kill-stat-card">
+        <span>3. 엔드 크리스탈</span>
+        <span class="kill-stat-val">${wk[3] || 0} Kills</span>
+      </div>
+      <div class="kill-stat-card">
+        <span>4. TNT 카트</span>
+        <span class="kill-stat-val">${wk[4] || 0} Kills</span>
+      </div>
+    `;
+  }
+  renderRankings();
 
   const badgeList = document.getElementById('settings-badge-list');
   badgeList.innerHTML = '';
@@ -1529,7 +1603,6 @@ function handleKO(victimIdx) {
     matchEnded = true;
     const p1Kills = 3 - players[1].stocks;
     const p1Deaths = 3 - players[0].stocks;
-    const topPlayerBeforeMatch = getTopKDPlayerName();
     saveRanking(players[0].name, p1Kills, p1Deaths);
 
     const p1Won = players[0].stocks > 0;
@@ -1543,7 +1616,8 @@ function handleKO(victimIdx) {
           unlockBadge(myName, 'Sub 50');
         }
       }
-      if (topPlayerBeforeMatch && players[1].name === topPlayerBeforeMatch && players[1].name !== myName) {
+      const topPlayer = getTopKDPlayerName();
+      if (topPlayer && players[1].name === topPlayer && players[1].name !== myName) {
         unlockBadge(myName, '왕좌 탈환');
       }
     }
