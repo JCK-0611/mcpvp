@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>대난투: 마인크래프트 PvP 에디션</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
   body {
@@ -420,7 +421,7 @@
 
 <div id="menu-screen" class="screen-overlay" style="display:none;">
   <h1>대난투: 마인크래프트 PvP</h1>
-  <div class="subtitle">다이아몬드 갑옷 · K/D 1위 청금석 네더라이트 · 배지 시스템</div>
+  <div class="subtitle">다이아몬드 갑옷 · K/D 1위 청금석 네더라이트 · <span id="cloud-sync-badge" style="color:#3fb950;">● 글로벌 랭킹 동기화 중</span></div>
 
   <div class="panel">
     <div class="user-header">
@@ -566,11 +567,34 @@ const BADGE_DEFS = [
 ];
 
 const ACCOUNTS_KEY = 'mc_smash_accounts_v2';
-const STORAGE_KEY = 'mc_smash_kd_rankings_v2';
+const STORAGE_KEY = 'mc_smash_kd_rankings_v3';
 const PROFILE_KEY = 'mc_smash_profiles_v1';
 const syncChannel = new BroadcastChannel('mc_smash_realtime_sync');
 
-function loadAccounts() {
+const gun = (typeof Gun !== 'undefined') ? Gun({
+  peers: [
+    'https://gun-manhattan.herokuapp.com/gun',
+    'https://relay.peer.ooo/gun',
+    'https://peer.wallie.io/gun'
+  ],
+  localStorage: false
+}) : null;
+
+const globalRankingsNode = gun ? gun.get('mc_smash_pvp_global_rankings_v3') : null;
+const globalAccountsNode = gun ? gun.get('mc_smash_pvp_global_accounts_v3') : null;
+
+let globalRankCache = (() => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    'CrystalKing': { name: 'CrystalKing', kills: 24, deaths: 8, updatedAt: 1 },
+    'MaceGod': { name: 'MaceGod', kills: 19, deaths: 9, updatedAt: 1 }
+  };
+})();
+
+let globalAccountCache = (() => {
   try {
     const raw = localStorage.getItem(ACCOUNTS_KEY);
     if (raw) return JSON.parse(raw);
@@ -579,10 +603,68 @@ function loadAccounts() {
     'CrystalKing': '1234',
     'MaceGod': '1234'
   };
+})();
+
+function persistGlobalRankCache() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(globalRankCache));
+  } catch (e) {}
+}
+
+function mergeRemoteRankingRecord(rec) {
+  if (!rec || !rec.name || typeof rec.kills !== 'number' || typeof rec.deaths !== 'number') return false;
+  const existing = globalRankCache[rec.name];
+  if (!existing || rec.kills > existing.kills || rec.deaths > existing.deaths || (rec.updatedAt || 0) > (existing.updatedAt || 0)) {
+    globalRankCache[rec.name] = {
+      name: rec.name,
+      kills: Math.max(rec.kills, existing ? existing.kills : 0),
+      deaths: Math.max(rec.deaths, existing ? existing.deaths : 0),
+      updatedAt: Math.max(rec.updatedAt || Date.now(), existing ? (existing.updatedAt || 0) : 0)
+    };
+    persistGlobalRankCache();
+    return true;
+  }
+  return false;
+}
+
+if (globalRankingsNode) {
+  globalRankingsNode.map().on((data, key) => {
+    if (!data || !key || key === '_') return;
+    const changed = mergeRemoteRankingRecord({
+      name: data.name || key,
+      kills: Number(data.kills) || 0,
+      deaths: Number(data.deaths) || 0,
+      updatedAt: Number(data.updatedAt) || 0
+    });
+    if (changed) renderRankings();
+  });
+}
+
+if (globalAccountsNode) {
+  globalAccountsNode.map().on((pw, nick) => {
+    if (typeof pw === 'string' && nick && nick !== '_') {
+      globalAccountCache[nick] = pw;
+      try {
+        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(globalAccountCache));
+      } catch (e) {}
+    }
+  });
+}
+
+function loadAccounts() {
+  return globalAccountCache;
 }
 
 function saveAccounts(accounts) {
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  globalAccountCache = accounts;
+  try {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  } catch (e) {}
+  if (globalAccountsNode) {
+    Object.keys(accounts).forEach(nick => {
+      globalAccountsNode.get(nick).put(accounts[nick]);
+    });
+  }
 }
 
 function loadProfiles() {
@@ -646,44 +728,41 @@ function unlockBadge(name, badgeId) {
 }
 
 function loadRankings() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) return JSON.parse(raw);
-  } catch (e) {}
-  return [
-    { name: 'CrystalKing', kills: 24, deaths: 8 },
-    { name: 'MaceGod', kills: 19, deaths: 9 }
-  ];
-}
-
-function getTopKDPlayerName() {
-  const list = loadRankings();
-  if (!list || list.length === 0) return '';
-  const sorted = [...list].sort((a, b) => {
-    const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
-    const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
-    return kdB - kdA || b.kills - a.kills;
-  });
-  return sorted[0].kills > 0 ? sorted[0].name : '';
-}
-
-function saveRanking(name, killsAdd, deathsAdd) {
-  const list = loadRankings();
-  let entry = list.find(x => x.name === name);
-  if (!entry) {
-    entry = { name, kills: 0, deaths: 0 };
-    list.push(entry);
-  }
-  entry.kills += killsAdd;
-  entry.deaths += deathsAdd;
+  const list = Object.values(globalRankCache);
   list.sort((a, b) => {
     const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
     const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
     return kdB - kdA || b.kills - a.kills;
   });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  return list;
+}
+
+function getTopKDPlayerName() {
+  const list = loadRankings();
+  if (!list || list.length === 0) return '';
+  return list[0].kills > 0 ? list[0].name : '';
+}
+
+function saveRanking(name, killsAdd, deathsAdd) {
+  const existing = globalRankCache[name] || { name, kills: 0, deaths: 0, updatedAt: 0 };
+  const updatedRecord = {
+    name,
+    kills: existing.kills + killsAdd,
+    deaths: existing.deaths + deathsAdd,
+    updatedAt: Date.now()
+  };
+  globalRankCache[name] = updatedRecord;
+  persistGlobalRankCache();
+
+  if (globalRankingsNode) {
+    globalRankingsNode.get(name).put(updatedRecord);
+  }
+
   renderRankings();
-  syncChannel.postMessage({ type: 'RANK_UPDATE' });
+  syncChannel.postMessage({ type: 'RANK_UPDATE', record: updatedRecord });
+  if (conn && conn.open) {
+    conn.send({ type: 'RANK_SYNC_BUNDLE', rankings: globalRankCache });
+  }
 }
 
 function renderRankings() {
@@ -713,7 +792,11 @@ function renderRankings() {
 }
 
 window.addEventListener('storage', (e) => {
-  if (e.key === STORAGE_KEY) renderRankings();
+  if (e.key === STORAGE_KEY && e.newValue) {
+    try {
+      applyRankingBundle(JSON.parse(e.newValue));
+    } catch (err) {}
+  }
 });
 
 let myName = '';
@@ -946,10 +1029,29 @@ function sendNetMessage(payload) {
   }
 }
 
+function applyRankingBundle(bundle) {
+  if (!bundle || typeof bundle !== 'object') return;
+  let updated = false;
+  Object.values(bundle).forEach(rec => {
+    if (mergeRemoteRankingRecord(rec)) {
+      updated = true;
+      if (globalRankingsNode) {
+        globalRankingsNode.get(rec.name).put(globalRankCache[rec.name]);
+      }
+    }
+  });
+  if (updated) renderRankings();
+}
+
 function handleNetData(msg) {
   if (!msg) return;
   if (msg.type === 'RANK_UPDATE') {
+    if (msg.record) mergeRemoteRankingRecord(msg.record);
     renderRankings();
+    return;
+  }
+  if (msg.type === 'RANK_SYNC_BUNDLE') {
+    applyRankingBundle(msg.rankings);
     return;
   }
   if (msg.roomCode && msg.roomCode !== activeRoomCode) return;
@@ -971,12 +1073,14 @@ function handleNetData(msg) {
     startMatch('pvp', msg.sender, true, msg.badge || '');
   } else if (msg.type === 'HELLO' && !gameMode) {
     opponentName = msg.name || '상대방';
+    if (msg.rankings) applyRankingBundle(msg.rankings);
     if (conn && conn.open) {
-      conn.send({ type: 'START', name: myName, badge: myBadge });
+      conn.send({ type: 'START', name: myName, badge: myBadge, rankings: globalRankCache });
     }
     startMatch('pvp', opponentName, true, msg.badge || '');
   } else if (msg.type === 'START' && !gameMode) {
     opponentName = msg.name || '방장';
+    if (msg.rankings) applyRankingBundle(msg.rankings);
     startMatch('pvp', opponentName, false, msg.badge || '');
   } else if (msg.type === 'SYNC' && gameMode === 'pvp') {
     const opp = players[1];
@@ -1054,7 +1158,7 @@ function startCodeMatchmaking() {
       peer.on('open', () => {
         conn = peer.connect(hostPeerId, { reliable: true });
         conn.on('open', () => {
-          conn.send({ type: 'HELLO', name: myName, badge: myBadge });
+          conn.send({ type: 'HELLO', name: myName, badge: myBadge, rankings: globalRankCache });
         });
         conn.on('data', (data) => handleNetData(data));
         conn.on('close', () => {
